@@ -1,0 +1,16 @@
+{
+    "method": "Optuna (Bayesian)",
+    "execution_time_seconds": 21.85152506828308,
+    "best_params": {
+        "n_estimators": 930,
+        "learning_rate": 0.03665300086273476,
+        "max_depth": 3,
+        "gamma": 0.0015109727743905,
+        "subsample": 0.6012718097626515,
+        "colsample_bytree": 0.7721989201124086,
+        "random_state": 42
+    },
+    "best_validation_mse": 102715.09809023999,
+    "test_mse": 817097.7503165955,
+    "test_rmse": 903.9345940479297
+}
