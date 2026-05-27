@@ -1,9 +1,5 @@
 # 📈 Prediksi Harga Saham IHSG dengan XGBoost: Perbandingan GridSearchCV vs Bayesian Optimization (Optuna)
 
-> **Mata Kuliah:** Machine Learning — Semester 4  
-> **Tipe Tugas ML:** Supervised Learning — Regresi Finansial  
-> **Algoritma:** XGBoost (eXtreme Gradient Boosting)
-
 ---
 
 ## 1. Ringkasan Proyek
