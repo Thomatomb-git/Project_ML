@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IHSG Predictor — Prediksi Harga Penutupan</title>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ============================================================
+       NAVBAR — Sticky navigation bar
+       ============================================================ -->
+  <nav class="navbar" id="navbar">
+    <a href="#hero" class="navbar__logo">📈 IHSG Predictor</a>
+    <button class="navbar__toggle" id="navToggle" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="navbar__links" id="navLinks">
+      <li><a href="#hero">Prediksi</a></li>
+      <li><a href="#chart">Grafik</a></li>
+      <li><a href="#comparison">Komparasi</a></li>
+      <li><a href="#features">Fitur</a></li>
+    </ul>
+  </nav>
+
+  <!-- ============================================================
+       SECTION 1 — Hero / Prediction
+       ============================================================ -->
+  <section class="section hero" id="hero">
+    <div class="container">
+      <h1 class="section__title hero__title animate-on-scroll">
+        Prediksi Harga Penutupan <span class="gradient-text">IHSG</span>
+      </h1>
+      <p class="section__subtitle animate-on-scroll">
+        Menggunakan model <strong>XGBoost</strong> yang dioptimasi dengan <strong>Optuna</strong> untuk memprediksi harga penutupan Indeks Harga Saham Gabungan hari berikutnya.
+      </p>
+
+      <!-- Loading spinner (ditampilkan saat fetch) -->
+      <div class="loader-wrapper" id="predictionLoader">
+        <div class="spinner"></div>
+        <p>Mengambil data prediksi…</p>
+      </div>
+
+      <!-- Error state -->
+      <div class="error-box hidden" id="predictionError">
+        <span class="error-box__icon">⚠️</span>
+        <p class="error-box__msg" id="predictionErrorMsg">Terjadi kesalahan.</p>
+      </div>
+
+      <!-- Prediction cards -->
+      <div class="cards-row hidden" id="predictionCards">
+        <!-- Card 1: Harga Terakhir -->
+        <div class="glass-card prediction-card animate-on-scroll">
+          <p class="prediction-card__label">Harga Terakhir</p>
+          <p class="prediction-card__value" id="lastClose">—</p>
+          <p class="prediction-card__sub">Close Price</p>
+        </div>
+
+        <!-- Card 2: Prediksi Besok -->
+        <div class="glass-card prediction-card animate-on-scroll">
+          <p class="prediction-card__label">Prediksi Besok (A+1)</p>
+          <p class="prediction-card__value accent" id="prediction">—</p>
+          <p class="prediction-card__sub">Forecasted Close</p>
+        </div>
+
+        <!-- Card 3: Selisih -->
+        <div class="glass-card prediction-card animate-on-scroll">
+          <p class="prediction-card__label">Selisih</p>
+          <p class="prediction-card__value" id="delta">—</p>
+          <p class="prediction-card__sub" id="deltaPercent">—</p>
+        </div>
+      </div>
+
+      <!-- Metadata -->
+      <p class="meta-line hidden" id="metaLine"></p>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SECTION 2 — Historical Chart (Actual vs Predicted)
+       ============================================================ -->
+  <section class="section" id="chart">
+    <div class="container">
+      <h2 class="section__title animate-on-scroll">
+        Perbandingan Harga <span class="gradient-text">Aktual vs Prediksi</span>
+      </h2>
+      <p class="section__subtitle animate-on-scroll">Periode Test Set (~2023 – 2025)</p>
+
+      <!-- Loading -->
+      <div class="loader-wrapper" id="chartLoader">
+        <div class="spinner"></div>
+        <p>Memuat data grafik…</p>
+      </div>
+
+      <!-- Error -->
+      <div class="error-box hidden" id="chartError">
+        <span class="error-box__icon">⚠️</span>
+        <p class="error-box__msg" id="chartErrorMsg">Gagal memuat grafik.</p>
+      </div>
+
+      <!-- Chart canvas wrapper -->
+      <div class="chart-wrapper glass-card hidden" id="chartWrapper">
+        <canvas id="mainChart"></canvas>
+      </div>
+      <p class="chart-hint hidden" id="chartHint">💡 Gunakan scroll untuk zoom, drag untuk pan</p>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SECTION 3 — Model Comparison
+       ============================================================ -->
+  <section class="section" id="comparison">
+    <div class="container">
+      <h2 class="section__title animate-on-scroll">
+        GridSearch vs Optuna — <span class="gradient-text">Siapa Lebih Baik?</span>
+      </h2>
+      <p class="section__subtitle animate-on-scroll">Perbandingan performa dua metode hyperparameter tuning</p>
+
+      <!-- Loading -->
+      <div class="loader-wrapper" id="comparisonLoader">
+        <div class="spinner"></div>
+        <p>Memuat data komparasi…</p>
+      </div>
+
+      <!-- Error -->
+      <div class="error-box hidden" id="comparisonError">
+        <span class="error-box__icon">⚠️</span>
+        <p class="error-box__msg" id="comparisonErrorMsg">Gagal memuat data komparasi.</p>
+      </div>
+
+      <!-- Comparison content -->
+      <div class="comparison-content hidden" id="comparisonContent">
+        <!-- Table -->
+        <div class="glass-card table-card animate-on-scroll">
+          <div class="table-responsive">
+            <table class="comparison-table" id="comparisonTable">
+              <thead>
+                <tr>
+                  <th>Metrik</th>
+                  <th>GridSearchCV</th>
+                  <th>Optuna</th>
+                  <th>Pemenang 🏆</th>
+                </tr>
+              </thead>
+              <tbody id="comparisonBody">
+                <!-- Diisi oleh JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Parameter cards -->
+        <div class="params-row">
+          <div class="glass-card param-card animate-on-scroll">
+            <h3 class="param-card__title">🔧 GridSearchCV Parameters</h3>
+            <ul class="param-list" id="gridParams"></ul>
+          </div>
+          <div class="glass-card param-card animate-on-scroll">
+            <h3 class="param-card__title">⚡ Optuna Parameters</h3>
+            <ul class="param-list" id="optunaParams"></ul>
+          </div>
+        </div>
+
+        <!-- Insight box -->
+        <div class="glass-card insight-box animate-on-scroll">
+          <p class="insight-box__icon">💡</p>
+          <p class="insight-box__text">
+            <strong>Insight:</strong> Optuna menemukan bahwa <em>shallow trees</em> (max_depth = 3) dengan jumlah estimator yang lebih banyak menghasilkan performa generalisasi yang lebih baik dibanding deep trees dari GridSearchCV. Pendekatan Bayesian Optuna juga <strong>5–6× lebih cepat</strong> dalam menemukan hyperparameter optimal.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SECTION 4 — Feature Importance
+       ============================================================ -->
+  <section class="section" id="features">
+    <div class="container">
+      <h2 class="section__title animate-on-scroll">
+        Indikator Mana yang <span class="gradient-text">Paling Berpengaruh?</span>
+      </h2>
+      <p class="section__subtitle animate-on-scroll">Feature importance dari model XGBoost terbaik</p>
+
+      <!-- Loading -->
+      <div class="loader-wrapper" id="featureLoader">
+        <div class="spinner"></div>
+        <p>Memuat data fitur…</p>
+      </div>
+
+      <!-- Error -->
+      <div class="error-box hidden" id="featureError">
+        <span class="error-box__icon">⚠️</span>
+        <p class="error-box__msg" id="featureErrorMsg">Gagal memuat data fitur.</p>
+      </div>
+
+      <!-- Feature content -->
+      <div class="feature-content hidden" id="featureContent">
+        <div class="feature-grid">
+          <!-- Chart -->
+          <div class="glass-card feature-chart-card animate-on-scroll">
+            <canvas id="featureChart"></canvas>
+          </div>
+
+          <!-- Explanation -->
+          <div class="glass-card feature-explain-card animate-on-scroll">
+            <h3 class="feature-explain__title">📖 Penjelasan Indikator</h3>
+            <ul class="feature-explain__list">
+              <li>
+                <span class="feature-tag">EMA_9</span>
+                <span>Exponential Moving Average 9 hari — bereaksi lebih cepat terhadap perubahan harga terkini</span>
+              </li>
+              <li>
+                <span class="feature-tag">SMA_5</span>
+                <span>Simple Moving Average 5 hari — rata-rata harga penutupan 5 hari terakhir</span>
+              </li>
+              <li>
+                <span class="feature-tag">SMA_15</span>
+                <span>Simple Moving Average 15 hari — tren jangka menengah-pendek</span>
+              </li>
+              <li>
+                <span class="feature-tag">SMA_30</span>
+                <span>Simple Moving Average 30 hari — tren jangka menengah</span>
+              </li>
+              <li>
+                <span class="feature-tag">RSI</span>
+                <span>Relative Strength Index 14 hari — indikator momentum overbought/oversold</span>
+              </li>
+              <li>
+                <span class="feature-tag">MACD</span>
+                <span>Moving Average Convergence Divergence — sinyal perubahan tren</span>
+              </li>
+              <li>
+                <span class="feature-tag">MACD_signal</span>
+                <span>Signal Line MACD — garis pemicu untuk sinyal beli/jual</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       FOOTER
+       ============================================================ -->
+  <footer class="footer">
+    <div class="container">
+      <p class="footer__main">Proyek Machine Learning Semester 4</p>
+      <p class="footer__sub">Data: Yahoo Finance &nbsp;|&nbsp; Model: XGBoost + Optuna</p>
+    </div>
+  </footer>
+
+  <!-- ============================================================
+       SCRIPTS (CDN + local)
+       ============================================================ -->
+  <script src="https://cdn.jsdelivr.net/npm/hammerjs@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
+  <script src="script.js"></script>
+
+</body>
+</html>
