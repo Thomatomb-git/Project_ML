@@ -76,4 +76,4 @@ def load_and_split_data_scaled():
     y_train_scaled = scalery.fit_transform(y_train.values.reshape(-1, 1)).flatten()
     y_val_scaled = scalery.transform(y_val.values.reshape(-1, 1)).flatten()
     
-    return X_train_scaled, y_train_scaled, X_val_scaled, y_val_scaled, X_test_scaled, y_test
+    return X_train_scaled, y_train_scaled, X_val_scaled, y_val_scaled, X_test_scaled, y_test, scalery
