@@ -1,0 +1,12 @@
+{
+    "method": "SVR_Optuna_(Bayesian)",
+    "execution_time_seconds": 5.966546058654785,
+    "best_params": {
+        "C": 303.0714722886743,
+        "gamma": 0.003999554092911216,
+        "epsilon": 0.0061688458250515835
+    },
+    "best_validation_mse": 0.003051466117556028,
+    "test_mse": 8689.582484572216,
+    "test_rmse": 93.21793005946986
+}
