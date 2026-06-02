@@ -1,0 +1,13 @@
+{
+    "method": "SVR_GridSearchCV",
+    "execution_time_seconds": 90.29776573181152,
+    "best_params": {
+        "C": 1000.0,
+        "epsilon": 0.001,
+        "gamma": 0.001,
+        "kernel": "rbf"
+    },
+    "best_validation_mse": 0.00305398288217361,
+    "test_mse": 6066.966079144737,
+    "test_rmse": 77.89073166394533
+}
