@@ -68,12 +68,12 @@ def load_and_split_data_scaled():
     scalerX = StandardScaler()
     scalery = StandardScaler()
 
-    # Fit hanya pada Train set, lalu transform ke semuanya
-    X_train_scaled = scalerX.fit_transform(X_train)
-    X_val_scaled = scalerX.transform(X_val)
-    X_test_scaled = scalerX.transform(X_test)
+    # Bungkus kembali numpy array hasil scaling ke dalam Pandas DataFrame / Series aslinya
+    X_train_scaled = pd.DataFrame(X_train_scaled, columns=X_train.columns, index=X_train.index)
+    X_val_scaled = pd.DataFrame(X_val_scaled, columns=X_val.columns, index=X_val.index)
+    X_test_scaled = pd.DataFrame(X_test_scaled, columns=X_test.columns, index=X_test.index)
     
-    y_train_scaled = scalery.fit_transform(y_train.values.reshape(-1, 1)).flatten()
-    y_val_scaled = scalery.transform(y_val.values.reshape(-1, 1)).flatten()
+    y_train_scaled = pd.Series(y_train_scaled, index=y_train.index)
+    y_val_scaled = pd.Series(y_val_scaled, index=y_val.index)
     
     return X_train_scaled, y_train_scaled, X_val_scaled, y_val_scaled, X_test_scaled, y_test, scalery
