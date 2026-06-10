@@ -40,8 +40,17 @@
         Prediksi Harga Penutupan <span class="gradient-text">IHSG</span>
       </h1>
       <p class="section__subtitle animate-on-scroll">
-        Menggunakan model <strong>XGBoost</strong> yang dioptimasi dengan <strong>Optuna</strong> untuk memprediksi harga penutupan Indeks Harga Saham Gabungan hari berikutnya.
+        Menggunakan model <strong>XGBoost</strong> dan <strong>SVR</strong> yang dioptimasi dengan <strong>Optuna</strong> untuk memprediksi harga penutupan Indeks Harga Saham Gabungan hari berikutnya.
       </p>
+
+      <!-- Model Selector -->
+      <div class="model-selector-wrapper animate-on-scroll">
+        <label for="modelSelect" class="model-selector-label">Pilih Algoritma:</label>
+        <select id="modelSelect" class="glass-select">
+          <option value="xgboost">XGBoost (Optuna)</option>
+          <option value="svr">SVR (Optuna)</option>
+        </select>
+      </div>
 
       <!-- Loading spinner (ditampilkan saat fetch) -->
       <div class="loader-wrapper" id="predictionLoader">
@@ -145,8 +154,10 @@
               <thead>
                 <tr>
                   <th>Metrik</th>
-                  <th>GridSearchCV</th>
-                  <th>Optuna</th>
+                  <th>XGBoost (GridSearch)</th>
+                  <th>XGBoost (Optuna)</th>
+                  <th>SVR (GridSearch)</th>
+                  <th>SVR (Optuna)</th>
                   <th>Pemenang 🏆</th>
                 </tr>
               </thead>
@@ -160,12 +171,20 @@
         <!-- Parameter cards -->
         <div class="params-row">
           <div class="glass-card param-card animate-on-scroll">
-            <h3 class="param-card__title">🔧 GridSearchCV Parameters</h3>
-            <ul class="param-list" id="gridParams"></ul>
+            <h3 class="param-card__title">🔧 XGB GridSearch</h3>
+            <ul class="param-list" id="xgbGridParams"></ul>
           </div>
           <div class="glass-card param-card animate-on-scroll">
-            <h3 class="param-card__title">⚡ Optuna Parameters</h3>
-            <ul class="param-list" id="optunaParams"></ul>
+            <h3 class="param-card__title">⚡ XGB Optuna</h3>
+            <ul class="param-list" id="xgbOptunaParams"></ul>
+          </div>
+          <div class="glass-card param-card animate-on-scroll">
+            <h3 class="param-card__title">🔧 SVR GridSearch</h3>
+            <ul class="param-list" id="svrGridParams"></ul>
+          </div>
+          <div class="glass-card param-card animate-on-scroll">
+            <h3 class="param-card__title">⚡ SVR Optuna</h3>
+            <ul class="param-list" id="svrOptunaParams"></ul>
           </div>
         </div>
 

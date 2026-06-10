@@ -211,6 +211,56 @@ body::after {
 }
 
 /* ────────────────────────────────────────
+   MODEL SELECTOR
+   ──────────────────────────────────────── */
+.model-selector-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 40px;
+}
+
+.model-selector-label {
+  font-weight: 500;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.glass-select {
+  appearance: none;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--bg-glass-border);
+  color: var(--text-primary);
+  padding: 10px 36px 10px 16px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  backdrop-filter: blur(var(--blur));
+  -webkit-backdrop-filter: blur(var(--blur));
+  cursor: pointer;
+  outline: none;
+  transition: all var(--transition);
+  
+  /* Custom arrow */
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%239a9ab8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px top 55%;
+  background-size: 10px auto;
+}
+
+.glass-select:hover, .glass-select:focus {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.glass-select option {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* ────────────────────────────────────────
    GLASS CARD
    ──────────────────────────────────────── */
 .glass-card {
@@ -412,7 +462,7 @@ body::after {
 /* Parameter cards */
 .params-row {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 24px;
   margin-bottom: 24px;
 }

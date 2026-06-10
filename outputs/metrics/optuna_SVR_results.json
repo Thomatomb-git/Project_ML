@@ -1,12 +1,14 @@
 {
-    "method": "SVR_Optuna_(Bayesian)",
-    "execution_time_seconds": 5.966546058654785,
+    "method": "SVR_Optuna",
+    "execution_time_seconds": 56.09389543533325,
     "best_params": {
-        "C": 303.0714722886743,
-        "gamma": 0.003999554092911216,
-        "epsilon": 0.0061688458250515835
+        "C": 865.3958910936518,
+        "gamma": 0.001522779986902099,
+        "epsilon": 0.008245874864982553,
+        "kernel": "rbf"
     },
-    "best_validation_mse": 0.003051466117556028,
-    "test_mse": 8689.582484572216,
-    "test_rmse": 93.21793005946986
+    "best_validation_mse": 0.003049545746982369,
+    "test_mse": 6042.334722832347,
+    "test_rmse": 77.73245604528617,
+    "mape": 0.8157417064009556
 }

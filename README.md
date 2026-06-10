@@ -163,18 +163,14 @@ Project_ML/
 │
 ├── README.md                  # Dokumentasi proyek (file ini)
 ├── Documentation.md           # Spesifikasi riset detail
-├── config.py                  # Fungsi load data & split train/val/test
 ├── requirements.txt           # Dependensi Python
 │
-├── src/                       # Source code utama
-│   ├── download_data.py       # Download data IHSG dari Yahoo Finance
-│   └── features.py            # Feature engineering (indikator teknikal)
-│
-├── experiments/                # Script eksperimen
-│   ├── run_gridsearch.py      # Baseline: XGBoost + GridSearchCV
-│   ├── run_optuna.py          # Proposed: XGBoost + Optuna
-│   ├── generate_plots.py      # Pembuatan visualisasi
-│   └── check_percentage_error.py  # Analisis MAPE & persentase error
+├── notebooks/                 # Persiapan Data & Eksperimen Model
+│   ├── Data_Preparation.ipynb     # Download data & feature engineering
+│   ├── XGBoost_GridSearchCV.ipynb # XGBoost menggunakan GridSearch
+│   ├── XGBoost_Optuna.ipynb       # XGBoost menggunakan Optuna
+│   ├── SVR_GridSearchCV.ipynb     # SVR menggunakan GridSearch
+│   └── SVR_Optuna.ipynb           # SVR menggunakan Optuna
 │
 ├── data/
 │   ├── raw/                   # Data mentah dari Yahoo Finance
@@ -197,23 +193,12 @@ pip install -r requirements.txt
 
 ### Langkah Eksekusi (Urutan)
 ```bash
-# 1. Download data IHSG dari Yahoo Finance
-python src/download_data.py
+# 1. Jalankan Jupyter Notebook
+jupyter notebook
 
-# 2. Feature engineering (hitung indikator teknikal)
-python src/features.py
+# 2. Buka dan jalankan `notebooks/Data_Preparation.ipynb` untuk mengunduh data mentah dan memproses fitur (indikator teknikal).
 
-# 3. Jalankan baseline (GridSearchCV)
-python experiments/run_gridsearch.py
-
-# 4. Jalankan metode usulan (Optuna)
-python experiments/run_optuna.py
-
-# 5. Generate visualisasi
-python experiments/generate_plots.py
-
-# 6. (Opsional) Cek persentase error / MAPE
-python experiments/check_percentage_error.py
+# 3. Buka dan jalankan cell-cell di notebook model yang diinginkan (misalnya XGBoost_Optuna.ipynb) secara berurutan. Hasil evaluasi dan grafik akan otomatis tersimpan di folder `outputs/`.
 ```
 
 ---

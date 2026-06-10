@@ -92,14 +92,22 @@ async function fetchJSON(url) {
 
 // ─── Section 1: Prediction ─────────────────────────────────────
 
-async function loadPrediction() {
+async function loadPrediction(isReload = false) {
   const loader = $('#predictionLoader');
   const errorBox = $('#predictionError');
   const cards = $('#predictionCards');
   const meta = $('#metaLine');
+  const modelSelect = $('#modelSelect').value;
+
+  if (isReload) {
+    show(loader);
+    hide(cards);
+    hide(meta);
+    hide(errorBox);
+  }
 
   try {
-    const data = await fetchJSON('/api/predict');
+    const data = await fetchJSON(`/api/predict?model_type=${modelSelect}`);
 
     hide(loader);
     show(cards);
@@ -118,20 +126,26 @@ async function loadPrediction() {
     const arrow = isUp ? '▲' : '▼';
     deltaEl.textContent = `${arrow} ${formatIDR(Math.abs(data.delta))}`;
     deltaEl.classList.add(isUp ? 'up' : 'down');
+    deltaEl.classList.remove(isUp ? 'down' : 'up');
     deltaPercentEl.textContent = `${isUp ? '+' : '-'}${formatIDR(Math.abs(data.delta_percent))}%`;
     deltaPercentEl.classList.add(isUp ? 'up' : 'down');
+    deltaPercentEl.classList.remove(isUp ? 'down' : 'up');
 
+    const modelNameDisplay = data.model_used === 'svr' ? 'SVR + Optuna' : 'XGBoost + Optuna';
     // Metadata
-    meta.textContent = `Data terakhir: ${data.last_date}  •  Model: XGBoost + Optuna`;
+    meta.textContent = `Data terakhir: ${data.last_date}  •  Model: ${modelNameDisplay}`;
 
-    // Trigger animasi scroll untuk card yang baru muncul
-    setTimeout(() => initScrollAnimations(), 50);
+    if (!isReload) {
+      setTimeout(() => initScrollAnimations(), 50);
+    }
   } catch (err) {
     hide(loader);
     show(errorBox);
     $('#predictionErrorMsg').textContent = err.message || 'Gagal memuat data prediksi.';
   }
 }
+
+$('#modelSelect').addEventListener('change', () => loadPrediction(true));
 
 // ─── Section 2: Historical Chart ───────────────────────────────
 
@@ -152,9 +166,9 @@ async function loadChart() {
 
     const ctx = $('#mainChart').getContext('2d');
 
-    // Warna dan style
-    const actualColor = 'rgba(59, 130, 246, 1)';     // Biru
-    const predictedColor = 'rgba(245, 158, 11, 1)';  // Amber/oranye
+    const actualColor = 'rgba(59, 130, 246, 1)';     // Blue
+    const predictedXgbColor = 'rgba(245, 158, 11, 1)';  // Amber
+    const predictedSvrColor = 'rgba(16, 185, 129, 1)';  // Green
 
     mainChartInstance = new Chart(ctx, {
       type: 'line',
@@ -174,17 +188,30 @@ async function loadChart() {
             fill: false,
           },
           {
-            label: 'Prediksi',
-            data: data.predicted,
-            borderColor: predictedColor,
+            label: 'Prediksi XGBoost',
+            data: data.predicted_xgb,
+            borderColor: predictedXgbColor,
             backgroundColor: 'rgba(245, 158, 11, 0.08)',
             borderWidth: 2,
             pointRadius: 0,
             pointHoverRadius: 5,
-            pointHoverBackgroundColor: predictedColor,
+            pointHoverBackgroundColor: predictedXgbColor,
             tension: 0.3,
             fill: false,
             borderDash: [6, 3],
+          },
+          {
+            label: 'Prediksi SVR',
+            data: data.predicted_svr,
+            borderColor: predictedSvrColor,
+            backgroundColor: 'rgba(16, 185, 129, 0.08)',
+            borderWidth: 2,
+            pointRadius: 0,
+            pointHoverRadius: 5,
+            pointHoverBackgroundColor: predictedSvrColor,
+            tension: 0.3,
+            fill: false,
+            borderDash: [3, 3],
           },
         ],
       },
@@ -282,41 +309,75 @@ async function loadComparison() {
     hide(loader);
     show(content);
 
-    const gs = data.gridsearch;
-    const op = data.optuna;
-
-    // Helper: tentukan pemenang (lebih kecil = lebih baik, kecuali waktu eksekusi)
-    function winner(gsVal, opVal, lowerBetter = true) {
-      if (lowerBetter) return gsVal <= opVal ? 'GridSearchCV' : 'Optuna';
-      return gsVal >= opVal ? 'GridSearchCV' : 'Optuna';
+    // Helper: tentukan pemenang (lebih kecil = lebih baik)
+    function getWinner(xG, xO, sG, sO, lowerBetter = true) {
+      // If any is missing or undefined, give a huge penalty
+      const vals = [
+        {name: 'XGBoost (Optuna)', val: xO ?? (lowerBetter ? Infinity : -Infinity)},
+        {name: 'SVR (Optuna)', val: sO ?? (lowerBetter ? Infinity : -Infinity)},
+        {name: 'XGBoost (GridSearch)', val: xG ?? (lowerBetter ? Infinity : -Infinity)},
+        {name: 'SVR (GridSearch)', val: sG ?? (lowerBetter ? Infinity : -Infinity)},
+      ];
+      if (lowerBetter) {
+        vals.sort((a,b) => a.val - b.val);
+      } else {
+        vals.sort((a,b) => b.val - a.val);
+      }
+      return vals[0].name;
     }
 
-    // Hitung MAPE jika tersedia, atau tampilkan "N/A"
-    // (MAPE tidak ada di response, kita tampilkan "-" sebagai placeholder)
     const rows = [
       {
         label: 'Validation MSE',
-        gs: formatIDR(gs.best_validation_mse),
-        op: formatIDR(op.best_validation_mse),
-        win: winner(gs.best_validation_mse, op.best_validation_mse),
+        xG: formatIDR(data.xgboost_gridsearch?.best_validation_mse),
+        xO: formatIDR(data.xgboost_optuna?.best_validation_mse),
+        sG: formatIDR(data.svr_gridsearch?.best_validation_mse),
+        sO: formatIDR(data.svr_optuna?.best_validation_mse),
+        win: getWinner(
+            data.xgboost_gridsearch?.best_validation_mse,
+            data.xgboost_optuna?.best_validation_mse,
+            data.svr_gridsearch?.best_validation_mse,
+            data.svr_optuna?.best_validation_mse
+        ),
       },
       {
         label: 'Test MSE',
-        gs: formatIDR(gs.test_mse),
-        op: formatIDR(op.test_mse),
-        win: winner(gs.test_mse, op.test_mse),
+        xG: formatIDR(data.xgboost_gridsearch?.test_mse),
+        xO: formatIDR(data.xgboost_optuna?.test_mse),
+        sG: formatIDR(data.svr_gridsearch?.test_mse),
+        sO: formatIDR(data.svr_optuna?.test_mse),
+        win: getWinner(
+            data.xgboost_gridsearch?.test_mse,
+            data.xgboost_optuna?.test_mse,
+            data.svr_gridsearch?.test_mse,
+            data.svr_optuna?.test_mse
+        ),
       },
       {
         label: 'Test RMSE',
-        gs: formatIDR(gs.test_rmse),
-        op: formatIDR(op.test_rmse),
-        win: winner(gs.test_rmse, op.test_rmse),
+        xG: formatIDR(data.xgboost_gridsearch?.test_rmse),
+        xO: formatIDR(data.xgboost_optuna?.test_rmse),
+        sG: formatIDR(data.svr_gridsearch?.test_rmse),
+        sO: formatIDR(data.svr_optuna?.test_rmse),
+        win: getWinner(
+            data.xgboost_gridsearch?.test_rmse,
+            data.xgboost_optuna?.test_rmse,
+            data.svr_gridsearch?.test_rmse,
+            data.svr_optuna?.test_rmse
+        ),
       },
       {
         label: 'Waktu Eksekusi (detik)',
-        gs: formatIDR(gs.execution_time_seconds),
-        op: formatIDR(op.execution_time_seconds),
-        win: winner(gs.execution_time_seconds, op.execution_time_seconds),
+        xG: formatIDR(data.xgboost_gridsearch?.execution_time_seconds),
+        xO: formatIDR(data.xgboost_optuna?.execution_time_seconds),
+        sG: formatIDR(data.svr_gridsearch?.execution_time_seconds),
+        sO: formatIDR(data.svr_optuna?.execution_time_seconds),
+        win: getWinner(
+            data.xgboost_gridsearch?.execution_time_seconds,
+            data.xgboost_optuna?.execution_time_seconds,
+            data.svr_gridsearch?.execution_time_seconds,
+            data.svr_optuna?.execution_time_seconds
+        ),
       },
     ];
 
@@ -327,20 +388,17 @@ async function loadComparison() {
         (r) => `
       <tr>
         <td>${r.label}</td>
-        <td>${r.gs}</td>
-        <td>${r.op}</td>
-        <td class="winner">${r.win === 'Optuna' ? '⚡ ' : '🔧 '}${r.win}</td>
+        <td>${r.xG}</td>
+        <td>${r.xO}</td>
+        <td>${r.sG}</td>
+        <td>${r.sO}</td>
+        <td class="winner">🏆 ${r.win}</td>
       </tr>`
       )
       .join('');
 
-    // Parameter lists — urutan seragam agar sejajar di kedua kartu
-    const paramOrder = [
-      'n_estimators', 'learning_rate', 'max_depth', 'gamma',
-      'subsample', 'colsample_bytree', 'random_state',
-    ];
-
-    function renderParams(containerId, params) {
+    function renderParams(containerId, params, paramOrder) {
+      if (!params) return;
       const ul = $(`#${containerId}`);
       ul.innerHTML = paramOrder
         .map((key) => {
@@ -352,8 +410,10 @@ async function loadComparison() {
         .join('');
     }
 
-    renderParams('gridParams', gs.best_params);
-    renderParams('optunaParams', op.best_params);
+    renderParams('xgbGridParams', data.xgboost_gridsearch?.best_params, ['n_estimators', 'learning_rate', 'max_depth', 'gamma', 'random_state']);
+    renderParams('xgbOptunaParams', data.xgboost_optuna?.best_params, ['n_estimators', 'learning_rate', 'max_depth', 'gamma', 'subsample', 'colsample_bytree', 'random_state']);
+    renderParams('svrGridParams', data.svr_gridsearch?.best_params, ['C', 'gamma', 'epsilon', 'kernel']);
+    renderParams('svrOptunaParams', data.svr_optuna?.best_params, ['C', 'gamma', 'epsilon', 'kernel']);
 
     setTimeout(() => initScrollAnimations(), 50);
   } catch (err) {
@@ -374,13 +434,15 @@ async function loadFeatureImportance() {
 
   try {
     const data = await fetchJSON('/api/feature-importance');
+    if (!data.features || data.features.length === 0) {
+        throw new Error("Data feature importance kosong.");
+    }
 
     hide(loader);
     show(content);
 
     const ctx = $('#featureChart').getContext('2d');
 
-    // Warna gradient untuk setiap bar
     const barColors = [
       'rgba(59, 130, 246, 0.85)',
       'rgba(99, 102, 241, 0.85)',
@@ -401,7 +463,6 @@ async function loadFeatureImportance() {
       'rgba(245, 158, 11, 1)',
     ];
 
-    // Reverse agar yang terbesar di atas (horizontal bar)
     const features = [...data.features].reverse();
     const scores = [...data.scores].reverse();
     const colors = [...barColors].slice(0, data.features.length).reverse();
@@ -424,7 +485,7 @@ async function loadFeatureImportance() {
         ],
       },
       options: {
-        indexAxis: 'y', // Horizontal bar
+        indexAxis: 'y',
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
@@ -477,18 +538,16 @@ async function loadFeatureImportance() {
   } catch (err) {
     hide(loader);
     show(errorBox);
-    $('#featureErrorMsg').textContent = err.message || 'Gagal memuat data fitur.';
+    $('#featureErrorMsg').textContent = err.message || 'Gagal memuat data fitur. (Pastikan XGBoost Optuna sudah dijalankan)';
   }
 }
 
 // ─── INIT: Jalankan semua saat DOM siap ─────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Navbar & animasi scroll
   initNavbar();
   initScrollAnimations();
 
-  // Fetch semua data secara paralel
   loadPrediction();
   loadChart();
   loadComparison();

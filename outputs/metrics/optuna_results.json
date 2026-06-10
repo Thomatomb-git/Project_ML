@@ -1,16 +1,17 @@
 {
-    "method": "Optuna (Bayesian)",
-    "execution_time_seconds": 21.85152506828308,
+    "method": "Optuna",
+    "execution_time_seconds": 29.534369230270386,
     "best_params": {
-        "n_estimators": 930,
-        "learning_rate": 0.03665300086273476,
+        "n_estimators": 897,
+        "learning_rate": 0.030549249380037127,
         "max_depth": 3,
-        "gamma": 0.0015109727743905,
-        "subsample": 0.6012718097626515,
-        "colsample_bytree": 0.7721989201124086,
+        "gamma": 0.01892844526911721,
+        "subsample": 0.8511623785550595,
+        "colsample_bytree": 0.8167862593111228,
         "random_state": 42
     },
-    "best_validation_mse": 102715.09809023999,
-    "test_mse": 817097.7503165955,
-    "test_rmse": 903.9345940479297
+    "best_validation_mse": 102917.79934653707,
+    "test_mse": 815560.1024453467,
+    "test_rmse": 903.0836630375652,
+    "mape": 10.126291047024573
 }
