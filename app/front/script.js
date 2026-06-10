@@ -404,7 +404,7 @@ async function loadComparison() {
         .map((key) => {
           let val = params[key];
           if (typeof val === 'number' && !Number.isInteger(val)) {
-            val = parseFloat(val.toFixed(6));
+            val = parseFloat(val.toFixed(5));
           }
           const display = val != null ? val : '—';
           const dimClass = val == null ? ' dim' : '';
