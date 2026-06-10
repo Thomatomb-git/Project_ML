@@ -1,22 +1,22 @@
 /* ================================================================
    IHSG Predictor — Main Script
-   Mengelola fetch API, Chart.js, animasi scroll, dsb.
+   Handles API fetching, Chart.js, scroll animations, etc.
    ================================================================ */
 
-// ─── Utilitas ────────────────────────────────────────────────────
+// ─── Utility ────────────────────────────────────────────────────
 
-/** Format angka ke locale Indonesia (titik ribuan, koma desimal) */
-function formatIDR(num, decimals = 2) {
+/** Format number to US locale (comma for thousands, dot for decimals) */
+function formatNumber(num, decimals = 2) {
   if (num == null || isNaN(num)) return '—';
-  return Number(num).toLocaleString('id-ID', {
+  return Number(num).toLocaleString('en-US', {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   });
 }
 
-/** Helper: tampilkan elemen */
+/** Helper: show element */
 function show(el) { el.classList.remove('hidden'); }
-/** Helper: sembunyikan elemen */
+/** Helper: hide element */
 function hide(el) { el.classList.add('hidden'); }
 
 // ─── DOM References ─────────────────────────────────────────────
@@ -48,7 +48,7 @@ function initNavbar() {
   const toggle = $('#navToggle');
   const links  = $('#navLinks');
 
-  // Efek scroll: tambah class 'scrolled'
+  // Scroll effect: add 'scrolled' class
   window.addEventListener('scroll', () => {
     navbar.classList.toggle('scrolled', window.scrollY > 30);
   });
@@ -58,7 +58,7 @@ function initNavbar() {
     links.classList.toggle('open');
   });
 
-  // Tutup menu saat link diklik (mobile)
+  // Close menu on link click (mobile)
   links.querySelectorAll('a').forEach((a) => {
     a.addEventListener('click', () => links.classList.remove('open'));
   });
@@ -113,27 +113,27 @@ async function loadPrediction(isReload = false) {
     show(cards);
     show(meta);
 
-    // Isi card Harga Terakhir
-    $('#lastClose').textContent = formatIDR(data.last_close);
+    // Populate Last Close card
+    $('#lastClose').textContent = formatNumber(data.last_close);
 
-    // Isi card Prediksi Besok
-    $('#prediction').textContent = formatIDR(data.prediction);
+    // Populate Tomorrow's Prediction card
+    $('#prediction').textContent = formatNumber(data.prediction);
 
-    // Isi card Selisih
+    // Populate Difference card
     const deltaEl = $('#delta');
     const deltaPercentEl = $('#deltaPercent');
     const isUp = data.delta >= 0;
     const arrow = isUp ? '▲' : '▼';
-    deltaEl.textContent = `${arrow} ${formatIDR(Math.abs(data.delta))}`;
+    deltaEl.textContent = `${arrow} ${formatNumber(Math.abs(data.delta))}`;
     deltaEl.classList.add(isUp ? 'up' : 'down');
     deltaEl.classList.remove(isUp ? 'down' : 'up');
-    deltaPercentEl.textContent = `${isUp ? '+' : '-'}${formatIDR(Math.abs(data.delta_percent))}%`;
+    deltaPercentEl.textContent = `${isUp ? '+' : '-'}${formatNumber(Math.abs(data.delta_percent))}%`;
     deltaPercentEl.classList.add(isUp ? 'up' : 'down');
     deltaPercentEl.classList.remove(isUp ? 'down' : 'up');
 
     const modelNameDisplay = data.model_used === 'svr' ? 'SVR + Optuna' : 'XGBoost + Optuna';
     // Metadata
-    meta.textContent = `Data terakhir: ${data.last_date}  •  Model: ${modelNameDisplay}`;
+    meta.textContent = `Last data: ${data.last_date}  •  Model: ${modelNameDisplay}`;
 
     if (!isReload) {
       setTimeout(() => initScrollAnimations(), 50);
@@ -141,7 +141,7 @@ async function loadPrediction(isReload = false) {
   } catch (err) {
     hide(loader);
     show(errorBox);
-    $('#predictionErrorMsg').textContent = err.message || 'Gagal memuat data prediksi.';
+    $('#predictionErrorMsg').textContent = err.message || 'Failed to load prediction data.';
   }
 }
 
@@ -176,7 +176,7 @@ async function loadChart() {
         labels: data.dates,
         datasets: [
           {
-            label: 'Aktual',
+            label: 'Actual',
             data: data.actual,
             borderColor: actualColor,
             backgroundColor: 'rgba(59, 130, 246, 0.08)',
@@ -188,7 +188,7 @@ async function loadChart() {
             fill: false,
           },
           {
-            label: 'Prediksi XGBoost',
+            label: 'XGBoost Prediction',
             data: data.predicted_xgb,
             borderColor: predictedXgbColor,
             backgroundColor: 'rgba(245, 158, 11, 0.08)',
@@ -201,7 +201,7 @@ async function loadChart() {
             borderDash: [6, 3],
           },
           {
-            label: 'Prediksi SVR',
+            label: 'SVR Prediction',
             data: data.predicted_svr,
             borderColor: predictedSvrColor,
             backgroundColor: 'rgba(16, 185, 129, 0.08)',
@@ -245,7 +245,7 @@ async function loadChart() {
             bodyFont: { family: 'Inter' },
             callbacks: {
               label: function (ctx) {
-                return `${ctx.dataset.label}: ${formatIDR(ctx.parsed.y)}`;
+                return `${ctx.dataset.label}: ${formatNumber(ctx.parsed.y)}`;
               },
             },
           },
@@ -278,7 +278,7 @@ async function loadChart() {
             ticks: {
               color: '#6a6a88',
               font: { family: 'Inter', size: 11 },
-              callback: (val) => formatIDR(val, 0),
+              callback: (val) => formatNumber(val, 0),
             },
             grid: {
               color: 'rgba(255, 255, 255, 0.04)',
@@ -292,7 +292,7 @@ async function loadChart() {
   } catch (err) {
     hide(loader);
     show(errorBox);
-    $('#chartErrorMsg').textContent = err.message || 'Gagal memuat data grafik.';
+    $('#chartErrorMsg').textContent = err.message || 'Failed to load chart data.';
   }
 }
 
@@ -309,7 +309,7 @@ async function loadComparison() {
     hide(loader);
     show(content);
 
-    // Helper: tentukan pemenang (lebih kecil = lebih baik)
+    // Helper: determine winner (smaller is better)
     function getWinner(xG, xO, sG, sO, lowerBetter = true) {
       // If any is missing or undefined, give a huge penalty
       const vals = [
@@ -329,10 +329,10 @@ async function loadComparison() {
     const rows = [
       {
         label: 'Validation MSE',
-        xG: formatIDR(data.xgboost_gridsearch?.best_validation_mse),
-        xO: formatIDR(data.xgboost_optuna?.best_validation_mse),
-        sG: formatIDR(data.svr_gridsearch?.best_validation_mse),
-        sO: formatIDR(data.svr_optuna?.best_validation_mse),
+        xG: formatNumber(data.xgboost_gridsearch?.best_validation_mse),
+        xO: formatNumber(data.xgboost_optuna?.best_validation_mse),
+        sG: formatNumber(data.svr_gridsearch?.best_validation_mse),
+        sO: formatNumber(data.svr_optuna?.best_validation_mse),
         win: getWinner(
             data.xgboost_gridsearch?.best_validation_mse,
             data.xgboost_optuna?.best_validation_mse,
@@ -342,10 +342,10 @@ async function loadComparison() {
       },
       {
         label: 'Test MSE',
-        xG: formatIDR(data.xgboost_gridsearch?.test_mse),
-        xO: formatIDR(data.xgboost_optuna?.test_mse),
-        sG: formatIDR(data.svr_gridsearch?.test_mse),
-        sO: formatIDR(data.svr_optuna?.test_mse),
+        xG: formatNumber(data.xgboost_gridsearch?.test_mse),
+        xO: formatNumber(data.xgboost_optuna?.test_mse),
+        sG: formatNumber(data.svr_gridsearch?.test_mse),
+        sO: formatNumber(data.svr_optuna?.test_mse),
         win: getWinner(
             data.xgboost_gridsearch?.test_mse,
             data.xgboost_optuna?.test_mse,
@@ -355,10 +355,10 @@ async function loadComparison() {
       },
       {
         label: 'Test RMSE',
-        xG: formatIDR(data.xgboost_gridsearch?.test_rmse),
-        xO: formatIDR(data.xgboost_optuna?.test_rmse),
-        sG: formatIDR(data.svr_gridsearch?.test_rmse),
-        sO: formatIDR(data.svr_optuna?.test_rmse),
+        xG: formatNumber(data.xgboost_gridsearch?.test_rmse),
+        xO: formatNumber(data.xgboost_optuna?.test_rmse),
+        sG: formatNumber(data.svr_gridsearch?.test_rmse),
+        sO: formatNumber(data.svr_optuna?.test_rmse),
         win: getWinner(
             data.xgboost_gridsearch?.test_rmse,
             data.xgboost_optuna?.test_rmse,
@@ -367,11 +367,11 @@ async function loadComparison() {
         ),
       },
       {
-        label: 'Waktu Eksekusi (detik)',
-        xG: formatIDR(data.xgboost_gridsearch?.execution_time_seconds),
-        xO: formatIDR(data.xgboost_optuna?.execution_time_seconds),
-        sG: formatIDR(data.svr_gridsearch?.execution_time_seconds),
-        sO: formatIDR(data.svr_optuna?.execution_time_seconds),
+        label: 'Execution Time (seconds)',
+        xG: formatNumber(data.xgboost_gridsearch?.execution_time_seconds),
+        xO: formatNumber(data.xgboost_optuna?.execution_time_seconds),
+        sG: formatNumber(data.svr_gridsearch?.execution_time_seconds),
+        sO: formatNumber(data.svr_optuna?.execution_time_seconds),
         win: getWinner(
             data.xgboost_gridsearch?.execution_time_seconds,
             data.xgboost_optuna?.execution_time_seconds,
@@ -381,7 +381,7 @@ async function loadComparison() {
       },
     ];
 
-    // Bangun tabel
+    // Build table
     const tbody = $('#comparisonBody');
     tbody.innerHTML = rows
       .map(
@@ -419,7 +419,7 @@ async function loadComparison() {
   } catch (err) {
     hide(loader);
     show(errorBox);
-    $('#comparisonErrorMsg').textContent = err.message || 'Gagal memuat data komparasi.';
+    $('#comparisonErrorMsg').textContent = err.message || 'Failed to load comparison data.';
   }
 }
 
@@ -435,7 +435,7 @@ async function loadFeatureImportance() {
   try {
     const data = await fetchJSON('/api/feature-importance');
     if (!data.features || data.features.length === 0) {
-        throw new Error("Data feature importance kosong.");
+        throw new Error("Feature importance data is empty.");
     }
 
     hide(loader);
@@ -538,11 +538,11 @@ async function loadFeatureImportance() {
   } catch (err) {
     hide(loader);
     show(errorBox);
-    $('#featureErrorMsg').textContent = err.message || 'Gagal memuat data fitur. (Pastikan XGBoost Optuna sudah dijalankan)';
+    $('#featureErrorMsg').textContent = err.message || 'Failed to load feature data. (Make sure XGBoost Optuna has been run)';
   }
 }
 
-// ─── INIT: Jalankan semua saat DOM siap ─────────────────────────
+// ─── INIT: Run all when DOM is ready ─────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
   initNavbar();

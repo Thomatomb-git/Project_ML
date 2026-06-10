@@ -1,80 +1,82 @@
-# 📈 Prediksi Harga Saham IHSG dengan XGBoost dan SVR: Perbandingan GridSearchCV vs Bayesian Optimization (Optuna)
+# 📈 IHSG Stock Price Prediction with XGBoost and SVR: GridSearchCV vs Bayesian Optimization (Optuna) Comparison
 
 ---
 
-## 1. Ringkasan Proyek
+## 1. Project Summary
 
-Proyek ini bertujuan memprediksi **harga penutupan harian (Closing Price)** Indeks Harga Saham Gabungan (**IHSG / ^JKSE**) menggunakan algoritma **XGBoost** dan **Support Vector Regression (SVR)** dengan pendekatan regresi berbasis indikator teknikal. Proyek ini juga dilengkapi dengan antarmuka **Web Application** (FastAPI) untuk memvisualisasikan dan menguji prediksi secara interaktif.
+Website link: https://projectmlback-production.up.railway.app/
 
-Inti penelitian adalah **membandingkan dua metode hyperparameter tuning**:
+This project aims to predict the **daily closing price** of the Jakarta Composite Index (**IHSG / ^JKSE**) using **XGBoost** and **Support Vector Regression (SVR)** algorithms with a regression approach based on technical indicators. The project also features an interactive **Web Application** (FastAPI) to visualize and test predictions in real-time.
+
+The core of the research is to **compare two hyperparameter tuning methods**:
 
 | | **GridSearchCV** (Baseline) | **Optuna / Bayesian Optimization** (Proposed) |
 |---|---|---|
-| **Strategi** | Exhaustive discrete search | Probabilistic smart search |
-| **Kelebihan** | Menjamin semua kombinasi dicoba | Lebih cepat & bisa menemukan parameter di ruang kontinu |
-| **Kekurangan** | Lambat, terbatas pada grid diskrit | Tidak menjamin global optimum |
+| **Strategy** | Exhaustive discrete search | Probabilistic smart search |
+| **Pros** | Guarantees all combinations are tested | Faster & can find parameters in continuous space |
+| **Cons** | Slow, limited to a discrete grid | Does not guarantee a global optimum |
 
-### Paper Referensi (Baseline)
+### Reference Paper (Baseline)
 > **"Stock Price Prediction Method Based on XGboost Algorithm"**  
 > Yifan Zhang — Lanzhou University of Technology, 2023  
 > DOI: [10.2991/978-94-6463-030-5_60](https://doi.org/10.2991/978-94-6463-030-5_60)
 
-Kontribusi proyek ini terhadap paper di atas:
-1. Mengganti metode tuning dari GridSearchCV ke **Bayesian Optimization (Optuna)** sebagai metode usulan
-2. Memperluas ruang pencarian parameter ke **ruang kontinu** (bukan diskrit)
-3. Menambahkan parameter anti-overfitting (`subsample`, `colsample_bytree`)
-4. Menguji pada indeks pasar berkembang (**IHSG**) dengan volatilitas tinggi
+This project's contributions relative to the paper above:
+1. Replaced the tuning method from GridSearchCV to **Bayesian Optimization (Optuna)** as the proposed method.
+2. Expanded the parameter search space to **continuous space** (instead of discrete).
+3. Added anti-overfitting parameters (`subsample`, `colsample_bytree`).
+4. Tested on an emerging market index (**IHSG**) with high volatility.
 
 ---
 
 ## 2. Dataset
 
-| Aspek | Detail |
+| Aspect | Details |
 |-------|--------|
-| **Subjek** | IHSG (Jakarta Composite Index) — Ticker: `^JKSE` |
-| **Sumber** | Yahoo Finance API (`yfinance`) |
-| **Periode** | 1 Januari 2010 – 31 Desember 2025 (~15 tahun) |
-| **Target** | Harga penutupan hari berikutnya (A+1) — `Target_Close = Close.shift(-1)` |
+| **Subject** | IHSG (Jakarta Composite Index) — Ticker: `^JKSE` |
+| **Source** | Yahoo Finance API (`yfinance`) |
+| **Period** | January 1, 2010 – December 31, 2025 (~15 years) |
+| **Target** | Next day's closing price (T+1) — `Target_Close = Close.shift(-1)` |
 
-### Pembagian Data (Sequential / Kronologis)
+### Data Split (Sequential / Chronological)
 
 ```
 |◀──────── 70% Train ─────────▶|◀── 15% Val ──▶|◀── 15% Test ──▶|
        2010 — ~2021                ~2021-2023         ~2023-2025
 ```
 
-> ⚠️ **Catatan**: Pembagian dilakukan secara **kronologis (sequential split)**, bukan random split, agar sesuai dengan sifat data time-series dan mencegah data leakage.
+> ⚠️ **Note**: The split is done **chronologically (sequential split)**, rather than randomly, to conform to the nature of time-series data and prevent data leakage.
 
 ---
 
-## 3. Feature Engineering (Indikator Teknikal)
+## 3. Feature Engineering (Technical Indicators)
 
-Model menggunakan **7 indikator teknikal** yang dihitung dari harga penutupan (`Close`) sebagai fitur input:
+The model utilizes **7 technical indicators** calculated from the closing price (`Close`) as input features:
 
-| # | Fitur | Deskripsi | Window |
+| # | Feature | Description | Window |
 |---|-------|-----------|--------|
-| 1 | **EMA_9** | Exponential Moving Average | 9 hari |
-| 2 | **SMA_5** | Simple Moving Average (jangka pendek) | 5 hari |
-| 3 | **SMA_15** | Simple Moving Average (jangka menengah) | 15 hari |
-| 4 | **SMA_30** | Simple Moving Average (jangka panjang) | 30 hari |
-| 5 | **RSI** | Relative Strength Index — pengukur momentum | 14 hari |
+| 1 | **EMA_9** | Exponential Moving Average | 9 days |
+| 2 | **SMA_5** | Simple Moving Average (short-term) | 5 days |
+| 3 | **SMA_15** | Simple Moving Average (mid-term) | 15 days |
+| 4 | **SMA_30** | Simple Moving Average (long-term) | 30 days |
+| 5 | **RSI** | Relative Strength Index — momentum oscillator | 14 days |
 | 6 | **MACD** | Moving Average Convergence Divergence (EMA12 − EMA26) | 12/26 |
-| 7 | **MACD_signal** | Signal line MACD | span 9 |
+| 7 | **MACD_signal** | MACD Signal line | span 9 |
 
-Library yang digunakan: [`ta`](https://github.com/bukosabino/ta) (Technical Analysis Library in Python)
+Library used: [`ta`](https://github.com/bukosabino/ta) (Technical Analysis Library in Python)
 
 ---
 
 ## 4. Hyperparameter Tuning
 
-Eksperimen dilakukan dengan men-tuning parameter untuk dua algoritma (XGBoost dan SVR) menggunakan dua pendekatan pencarian:
+Experiments were conducted by tuning parameters for two algorithms (XGBoost and SVR) using two search approaches:
 
-### A. GridSearchCV (Baseline — Mengikuti Paper Referensi)
+### A. GridSearchCV (Baseline — Following Reference Paper)
 
-Pencarian exhaustive pada grid diskrit berikut (sesuai Table 1 paper untuk XGBoost, dan ditambahkan untuk SVR):
+Exhaustive search on the following discrete grid (based on Table 1 of the paper for XGBoost, with additions for SVR):
 
 **1. XGBoost Grid**
-| Parameter | Kandidat Nilai |
+| Parameter | Candidate Values |
 |-----------|---------------|
 | `n_estimators` | [100, 200, 300, 400] |
 | `learning_rate` | [0.001, 0.005, 0.01, 0.05] |
@@ -83,21 +85,21 @@ Pencarian exhaustive pada grid diskrit berikut (sesuai Table 1 paper untuk XGBoo
 | `random_state` | 42 |
 
 **2. SVR Grid**
-| Parameter | Kandidat Nilai |
+| Parameter | Candidate Values |
 |-----------|---------------|
 | `C` | [1.0, 10.0, 100.0, 1000.0, 10000.0] |
 | `gamma` | [0.001, 0.01, 0.1, 1.0, 10.0] |
 | `epsilon` | [0.0001, 0.001, 0.01, 0.1] |
 | `kernel` | ['rbf'] |
 
-**Total kombinasi: 256** — setiap kombinasi dilatih & dievaluasi pada validation set.
+**Total combinations: 256** — each combination was trained & evaluated on the validation set.
 
-### B. Optuna / Bayesian Optimization (Metode Usulan)
+### B. Optuna / Bayesian Optimization (Proposed Method)
 
-Pencarian cerdas berbasis Teorema Bayes pada ruang **kontinu** yang diperluas:
+Smart search based on Bayes' Theorem over an expanded **continuous** space:
 
 **1. XGBoost Optuna Space**
-| Parameter | Range Pencarian | Distribusi |
+| Parameter | Search Range | Distribution |
 |-----------|----------------|------------|
 | `n_estimators` | 100 – 1000 | Uniform integer |
 | `learning_rate` | 0.001 – 0.1 | **Log-uniform** |
@@ -108,20 +110,20 @@ Pencarian cerdas berbasis Teorema Bayes pada ruang **kontinu** yang diperluas:
 | `random_state` | 42 (fixed) | — |
 
 **2. SVR Optuna Space**
-| Parameter | Range Pencarian | Distribusi |
+| Parameter | Search Range | Distribution |
 |-----------|----------------|------------|
 | `C` | 1.0 – 2000.0 | **Log-uniform** |
 | `gamma` | 0.001 – 10.0 | **Log-uniform** |
 | `epsilon` | 0.0001 – 0.1 | **Log-uniform** |
 | `kernel` | 'rbf' (fixed) | — |
 
-**Total iterasi: 50 trials** — setiap iterasi belajar dari hasil iterasi sebelumnya.
+**Total iterations: 50 trials** — each iteration learns from the results of the previous iterations.
 
 ---
 
-## 5. Hasil Eksperimen
+## 5. Experiment Results
 
-### Parameter Terbaik
+### Best Parameters
 
 | Parameter | GridSearchCV | Optuna |
 |-----------|-------------|--------|
@@ -132,158 +134,158 @@ Pencarian cerdas berbasis Teorema Bayes pada ruang **kontinu** yang diperluas:
 | `subsample` | — | 0.6013 |
 | `colsample_bytree` | — | 0.7722 |
 
-> 💡 **Insight**: Optuna menemukan bahwa model **dangkal** (`max_depth=3`) dengan **lebih banyak trees** (`n_estimators=930`) dan regularisasi tambahan (`subsample`, `colsample_bytree`) lebih optimal — berlawanan dengan Grid Search yang memilih pohon dalam (`max_depth=12`).
+> 💡 **Insight**: Optuna found that a **shallower** model (`max_depth=3`) with **more trees** (`n_estimators=930`) and additional regularization (`subsample`, `colsample_bytree`) is more optimal — contrary to Grid Search which selected deeper trees (`max_depth=12`).
 
-### Perbandingan Performa
+### Performance Comparison
 
-| Metrik | GridSearchCV (Baseline) | Optuna (Proposed) | Pemenang |
+| Metric | GridSearchCV (Baseline) | Optuna (Proposed) | Winner |
 |--------|------------------------|-------------------|----------|
 | **Validation MSE** | 127,778.94 | 102,715.10 | ✅ Optuna |
 | **Test MSE** | 853,577.93 | 817,097.75 | ✅ Optuna |
 | **Test RMSE** | 923.89 | 903.93 | ✅ Optuna |
-| **Waktu Eksekusi** | 122.40 detik | 21.85 detik | ✅ Optuna |
+| **Execution Time** | 122.40 seconds | 21.85 seconds | ✅ Optuna |
 | **MAPE** | ~10.65% | ~10.14% | ✅ Optuna |
 
-### Ringkasan Hasil
+### Results Summary
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  Optuna menghasilkan model yang:                            │
+│  Optuna produced a model that is:                           │
 │                                                             │
-│  📉 MSE 4.3% lebih rendah dari GridSearch                   │
-│  📉 RMSE 2.2% lebih rendah dari GridSearch                  │
-│  ⚡ 5.6x lebih cepat dari GridSearch                        │
-│  📊 MAPE ~10.14% (rata-rata meleset 10% dari harga asli)    │
+│  📉 MSE 4.3% lower than GridSearch                          │
+│  📉 RMSE 2.2% lower than GridSearch                         │
+│  ⚡ 5.6x faster than GridSearch                             │
+│  📊 MAPE ~10.14% (average miss of 10% from actual price)    │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 6. Visualisasi Hasil
+## 6. Results Visualization
 
 ### Actual vs Predicted Price (Test Set)
-Plot perbandingan harga asli IHSG vs prediksi model pada periode test (~2023–2025).  
+Comparison plot of actual IHSG prices vs model predictions during the test period (~2023–2025).  
 📁 `outputs/plots/actual_vs_predicted.png`
 
 ### Feature Importance
-Diagram batang menunjukkan skor kepentingan relatif setiap indikator teknikal setelah optimasi Bayesian.  
+Bar chart showing the relative importance score of each technical indicator after Bayesian optimization.  
 📁 `outputs/plots/feature_importance.png`
 
 ### Percentage Error Analysis
-Grafik persentase error harian dan histogram distribusi error untuk masing-masing model.  
+Daily percentage error chart and error distribution histogram for each model.  
 📁 `outputs/plots/percentage_error_xgboost__optuna.png`  
 📁 `outputs/plots/percentage_error_xgboost__gridsearch.png`
 
 ---
 
-## 7. Struktur Proyek
+## 7. Project Structure
 
 ```
 Project_ML/
 │
-├── README.md                  # Dokumentasi proyek (file ini)
-├── Documentation.md           # Spesifikasi riset detail
-├── requirements.txt           # Dependensi Python
-├── Procfile                   # File konfigurasi deployment web
+├── README.md                  # Project documentation (this file)
+├── Documentation.md           # Detailed research specifications
+├── requirements.txt           # Python dependencies
+├── Procfile                   # Web deployment configuration file
 │
 ├── app/                       # Web Application
-│   ├── back/                  # Backend FastAPI (main.py)
-│   └── front/                 # Frontend UI (index.html, style.css, script.js)
+│   ├── back/                  # FastAPI Backend (main.py)
+│   └── front/                 # UI Frontend (index.html, style.css, script.js)
 │
-├── notebooks/                 # Persiapan Data & Eksperimen Model
+├── notebooks/                 # Data Preparation & Model Experiments
 │   ├── Data_Preparation.ipynb     # Download data & feature engineering
-│   ├── XGBoost_GridSearchCV.ipynb # XGBoost menggunakan GridSearch
-│   ├── XGBoost_Optuna.ipynb       # XGBoost menggunakan Optuna
-│   ├── SVR_GridSearchCV.ipynb     # SVR menggunakan GridSearch
-│   └── SVR_Optuna.ipynb           # SVR menggunakan Optuna
+│   ├── XGBoost_GridSearchCV.ipynb # XGBoost using GridSearch
+│   ├── XGBoost_Optuna.ipynb       # XGBoost using Optuna
+│   ├── SVR_GridSearchCV.ipynb     # SVR using GridSearch
+│   └── SVR_Optuna.ipynb           # SVR using Optuna
 │
 ├── data/
-│   ├── raw/                   # Data mentah dari Yahoo Finance
-│   └── processed/             # Data setelah feature engineering
+│   ├── raw/                   # Raw data from Yahoo Finance
+│   └── processed/             # Data after feature engineering
 │
 └── outputs/
-    ├── models/                # Model XGBoost & SVR tersimpan (.pkl)
-    ├── metrics/               # Hasil metrik performa (.json)
-    └── plots/                 # Grafik visualisasi (.png)
+    ├── models/                # Saved XGBoost & SVR models (.pkl)
+    ├── metrics/               # Performance metric results (.json)
+    └── plots/                 # Visualization plots (.png)
 ```
 
 ---
 
-## 8. Cara Menjalankan
+## 8. How to Run
 
-### Prasyarat
+### Prerequisites
 ```bash
 pip install -r requirements.txt
 ```
 
-### Langkah Eksekusi Eksperimen (Notebooks)
+### Experiment Execution Steps (Notebooks)
 ```bash
-# 1. Jalankan Jupyter Notebook
+# 1. Run Jupyter Notebook
 jupyter notebook
 
-# 2. Buka dan jalankan `notebooks/Data_Preparation.ipynb` untuk mengunduh data mentah dan memproses fitur (indikator teknikal).
+# 2. Open and run `notebooks/Data_Preparation.ipynb` to download raw data and process features (technical indicators).
 
-# 3. Buka dan jalankan cell-cell di notebook model yang diinginkan (misalnya XGBoost_Optuna.ipynb) secara berurutan. Hasil evaluasi dan grafik akan otomatis tersimpan di folder `outputs/`.
+# 3. Open and sequentially run the cells in the desired model notebook (e.g., XGBoost_Optuna.ipynb). Evaluation results and plots will be automatically saved in the `outputs/` folder.
 ```
 
-### Menjalankan Web Application
-Setelah model dilatih dan disimpan di folder `outputs/models/`, Anda dapat menjalankan Web App interaktif.
+### Running the Web Application
+Once the model is trained and saved in the `outputs/models/` folder, you can run the interactive Web App.
 
-**1. Menjalankan Backend (FastAPI)**
+**1. Running the Backend (FastAPI)**
 ```bash
 cd app/back
 pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
 ```
-Backend API akan berjalan di `http://localhost:8000`. Dokumentasi interaktif (Swagger UI) ada di `http://localhost:8000/docs`.
+The Backend API will run at `http://localhost:8000`. Interactive documentation (Swagger UI) is available at `http://localhost:8000/docs`.
 
-**2. Menjalankan Frontend**
-Buka file `app/front/index.html` menggunakan web browser Anda, atau gunakan ekstensi seperti Live Server di VSCode.
-Antarmuka web akan terhubung secara otomatis ke backend lokal Anda.
+**2. Running the Frontend**
+Open the `app/front/index.html` file using your web browser, or use an extension like Live Server in VSCode.
+The web interface will automatically connect to your local backend.
 
 ---
 
-## 9. Metrik Evaluasi
+## 9. Evaluation Metrics
 
-| Metrik | Rumus | Kegunaan |
+| Metric | Formula | Use Case |
 |--------|-------|----------|
-| **MSE** | $\frac{1}{n}\sum(y_i - \hat{y}_i)^2$ | Mengukur rata-rata kuadrat error — sensitif terhadap outlier |
-| **RMSE** | $\sqrt{MSE}$ | Sama dengan MSE tapi dalam satuan asli (poin indeks) |
-| **MAPE** | $\frac{1}{n}\sum\left\|\frac{y_i - \hat{y}_i}{y_i}\right\| \times 100\%$ | Rata-rata persentase error — intuitif dan mudah diinterpretasi |
+| **MSE** | $\frac{1}{n}\sum(y_i - \hat{y}_i)^2$ | Measures mean squared error — sensitive to outliers |
+| **RMSE** | $\sqrt{MSE}$ | Same as MSE but in original units (index points) |
+| **MAPE** | $\frac{1}{n}\sum\left\|\frac{y_i - \hat{y}_i}{y_i}\right\| \times 100\%$ | Mean absolute percentage error — intuitive and easy to interpret |
 
 ---
 
-## 10. Teknologi & Library
+## 10. Technologies & Libraries
 
-| Library | Versi | Fungsi |
+| Library | Version | Function |
 |---------|-------|--------|
-| `xgboost` | — | Algoritma model utama |
-| `scikit-learn` | — | Metrik evaluasi & ParameterGrid |
+| `xgboost` | — | Main model algorithm |
+| `scikit-learn` | — | Evaluation metrics & ParameterGrid |
 | `optuna` | — | Bayesian hyperparameter optimization |
-| `yfinance` | — | Download data saham |
-| `ta` | — | Perhitungan indikator teknikal |
-| `pandas` | — | Manipulasi data |
-| `numpy` | — | Operasi numerik |
-| `matplotlib` | — | Visualisasi grafik |
-| `seaborn` | — | Styling visualisasi |
-| `fastapi` | — | Framework Backend Web App |
-| `uvicorn` | — | ASGI Server untuk FastAPI |
+| `yfinance` | — | Stock data download |
+| `ta` | — | Technical indicator calculation |
+| `pandas` | — | Data manipulation |
+| `numpy` | — | Numerical operations |
+| `matplotlib` | — | Plot visualization |
+| `seaborn` | — | Visualization styling |
+| `fastapi` | — | Web App Backend Framework |
+| `uvicorn` | — | ASGI Server for FastAPI |
 
 ---
 
-## 11. Kesimpulan
+## 11. Conclusion
 
-1. **Optuna (Bayesian Optimization) terbukti lebih unggul** dibandingkan GridSearchCV dalam semua metrik evaluasi: MSE lebih rendah, RMSE lebih rendah, dan waktu eksekusi **5.6x lebih cepat**.
+1. **Optuna (Bayesian Optimization) proves superior** to GridSearchCV across all evaluation metrics: lower MSE, lower RMSE, and **5.6x faster** execution time.
 
-2. Optuna menemukan konfigurasi parameter yang **berbeda secara signifikan** dari GridSearch — menghasilkan model yang lebih dangkal (`max_depth=3`) namun dengan lebih banyak pohon (`n_estimators=930`), mengindikasikan strategi ensemble yang lebih robust terhadap overfitting.
+2. Optuna found a parameter configuration that is **significantly different** from GridSearch — resulting in a shallower model (`max_depth=3`) but with more trees (`n_estimators=930`), indicating a more robust ensemble strategy against overfitting.
 
-3. Kedua model memiliki **MAPE sekitar 10%**, yang menunjukkan adanya keterbatasan inherent dalam memprediksi harga saham menggunakan indikator teknikal saja, terutama untuk horizon waktu yang jauh dari data training.
+3. Both models have a **MAPE of around 10%**, suggesting an inherent limitation in predicting stock prices using technical indicators alone, especially for time horizons far from the training data.
 
-4. Proyek ini sepenuhnya berada dalam domain **Machine Learning klasik** — menggunakan ensemble method (gradient boosting) berbasis decision tree, bukan deep learning / neural network.
+4. This project resides entirely in the domain of **classical Machine Learning** — utilizing an ensemble method (gradient boosting) based on decision trees, rather than deep learning / neural networks.
 
 ---
 
-## 12. Referensi
+## 12. References
 
 1. Zhang, Y. (2023). *Stock Price Prediction Method Based on XGboost Algorithm*. ICBBEM 2022, AHIS 5, pp. 595–603. DOI: [10.2991/978-94-6463-030-5_60](https://doi.org/10.2991/978-94-6463-030-5_60)
 2. Chen, T., & Guestrin, C. (2016). *XGBoost: A Scalable Tree Boosting System*. Proceedings of the 22nd ACM SIGKDD, pp. 785–794.

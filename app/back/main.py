@@ -32,8 +32,8 @@ import joblib
 # ──────────────────────────────────────────────
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
-MODEL_XGB_OPTUNA_PATH = PROJECT_ROOT / "outputs" / "models" / "xgboost_optuna.pkl"
-MODEL_XGB_GRID_PATH = PROJECT_ROOT / "outputs" / "models" / "xgboost_gridsearch.pkl"
+MODEL_XGB_OPTUNA_PATH = PROJECT_ROOT / "outputs" / "models" / "xgboost_optuna.json"
+MODEL_XGB_GRID_PATH = PROJECT_ROOT / "outputs" / "models" / "xgboost_gridsearch.json"
 MODEL_SVR_OPTUNA_PATH = PROJECT_ROOT / "outputs" / "models" / "svr_optuna.pkl"
 MODEL_SVR_GRID_PATH = PROJECT_ROOT / "outputs" / "models" / "svr_gridsearch.pkl"
 SCALER_X_PATH = PROJECT_ROOT / "outputs" / "models" / "scalerX.pkl"
@@ -75,8 +75,11 @@ async def lifespan(app: FastAPI):
     global model_xgb_optuna, model_xgb_gridsearch, model_svr_optuna, model_svr_gridsearch, scaler_X, scaler_y
 
     try:
-        model_xgb_optuna = joblib.load(str(MODEL_XGB_OPTUNA_PATH))
-        model_xgb_gridsearch = joblib.load(str(MODEL_XGB_GRID_PATH))
+        model_xgb_optuna = XGBRegressor()
+        model_xgb_optuna.load_model(str(MODEL_XGB_OPTUNA_PATH))
+        
+        model_xgb_gridsearch = XGBRegressor()
+        model_xgb_gridsearch.load_model(str(MODEL_XGB_GRID_PATH))
         model_svr_optuna = joblib.load(str(MODEL_SVR_OPTUNA_PATH))
         model_svr_gridsearch = joblib.load(str(MODEL_SVR_GRID_PATH))
         scaler_X = joblib.load(str(SCALER_X_PATH))
