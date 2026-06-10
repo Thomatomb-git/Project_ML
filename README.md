@@ -1,10 +1,10 @@
-# 📈 Prediksi Harga Saham IHSG dengan XGBoost: Perbandingan GridSearchCV vs Bayesian Optimization (Optuna)
+# 📈 Prediksi Harga Saham IHSG dengan XGBoost dan SVR: Perbandingan GridSearchCV vs Bayesian Optimization (Optuna)
 
 ---
 
 ## 1. Ringkasan Proyek
 
-Proyek ini bertujuan memprediksi **harga penutupan harian (Closing Price)** Indeks Harga Saham Gabungan (**IHSG / ^JKSE**) menggunakan algoritma **XGBoost** dengan pendekatan regresi berbasis indikator teknikal.
+Proyek ini bertujuan memprediksi **harga penutupan harian (Closing Price)** Indeks Harga Saham Gabungan (**IHSG / ^JKSE**) menggunakan algoritma **XGBoost** dan **Support Vector Regression (SVR)** dengan pendekatan regresi berbasis indikator teknikal. Proyek ini juga dilengkapi dengan antarmuka **Web Application** (FastAPI) untuk memvisualisasikan dan menguji prediksi secara interaktif.
 
 Inti penelitian adalah **membandingkan dua metode hyperparameter tuning**:
 
@@ -67,10 +67,13 @@ Library yang digunakan: [`ta`](https://github.com/bukosabino/ta) (Technical Anal
 
 ## 4. Hyperparameter Tuning
 
+Eksperimen dilakukan dengan men-tuning parameter untuk dua algoritma (XGBoost dan SVR) menggunakan dua pendekatan pencarian:
+
 ### A. GridSearchCV (Baseline — Mengikuti Paper Referensi)
 
-Pencarian exhaustive pada grid diskrit berikut (sesuai Table 1 paper):
+Pencarian exhaustive pada grid diskrit berikut (sesuai Table 1 paper untuk XGBoost, dan ditambahkan untuk SVR):
 
+**1. XGBoost Grid**
 | Parameter | Kandidat Nilai |
 |-----------|---------------|
 | `n_estimators` | [100, 200, 300, 400] |
@@ -79,12 +82,21 @@ Pencarian exhaustive pada grid diskrit berikut (sesuai Table 1 paper):
 | `gamma` | [0.001, 0.005, 0.01, 0.02] |
 | `random_state` | 42 |
 
+**2. SVR Grid**
+| Parameter | Kandidat Nilai |
+|-----------|---------------|
+| `C` | [1.0, 10.0, 100.0, 1000.0, 10000.0] |
+| `gamma` | [0.001, 0.01, 0.1, 1.0, 10.0] |
+| `epsilon` | [0.0001, 0.001, 0.01, 0.1] |
+| `kernel` | ['rbf'] |
+
 **Total kombinasi: 256** — setiap kombinasi dilatih & dievaluasi pada validation set.
 
 ### B. Optuna / Bayesian Optimization (Metode Usulan)
 
 Pencarian cerdas berbasis Teorema Bayes pada ruang **kontinu** yang diperluas:
 
+**1. XGBoost Optuna Space**
 | Parameter | Range Pencarian | Distribusi |
 |-----------|----------------|------------|
 | `n_estimators` | 100 – 1000 | Uniform integer |
@@ -94,6 +106,14 @@ Pencarian cerdas berbasis Teorema Bayes pada ruang **kontinu** yang diperluas:
 | `subsample` | 0.6 – 1.0 | Uniform float |
 | `colsample_bytree` | 0.6 – 1.0 | Uniform float |
 | `random_state` | 42 (fixed) | — |
+
+**2. SVR Optuna Space**
+| Parameter | Range Pencarian | Distribusi |
+|-----------|----------------|------------|
+| `C` | 1.0 – 2000.0 | **Log-uniform** |
+| `gamma` | 0.001 – 10.0 | **Log-uniform** |
+| `epsilon` | 0.0001 – 0.1 | **Log-uniform** |
+| `kernel` | 'rbf' (fixed) | — |
 
 **Total iterasi: 50 trials** — setiap iterasi belajar dari hasil iterasi sebelumnya.
 
@@ -164,6 +184,11 @@ Project_ML/
 ├── README.md                  # Dokumentasi proyek (file ini)
 ├── Documentation.md           # Spesifikasi riset detail
 ├── requirements.txt           # Dependensi Python
+├── Procfile                   # File konfigurasi deployment web
+│
+├── app/                       # Web Application
+│   ├── back/                  # Backend FastAPI (main.py)
+│   └── front/                 # Frontend UI (index.html, style.css, script.js)
 │
 ├── notebooks/                 # Persiapan Data & Eksperimen Model
 │   ├── Data_Preparation.ipynb     # Download data & feature engineering
@@ -177,7 +202,7 @@ Project_ML/
 │   └── processed/             # Data setelah feature engineering
 │
 └── outputs/
-    ├── models/                # Model XGBoost tersimpan (.json)
+    ├── models/                # Model XGBoost & SVR tersimpan (.pkl)
     ├── metrics/               # Hasil metrik performa (.json)
     └── plots/                 # Grafik visualisasi (.png)
 ```
@@ -191,7 +216,7 @@ Project_ML/
 pip install -r requirements.txt
 ```
 
-### Langkah Eksekusi (Urutan)
+### Langkah Eksekusi Eksperimen (Notebooks)
 ```bash
 # 1. Jalankan Jupyter Notebook
 jupyter notebook
@@ -200,6 +225,21 @@ jupyter notebook
 
 # 3. Buka dan jalankan cell-cell di notebook model yang diinginkan (misalnya XGBoost_Optuna.ipynb) secara berurutan. Hasil evaluasi dan grafik akan otomatis tersimpan di folder `outputs/`.
 ```
+
+### Menjalankan Web Application
+Setelah model dilatih dan disimpan di folder `outputs/models/`, Anda dapat menjalankan Web App interaktif.
+
+**1. Menjalankan Backend (FastAPI)**
+```bash
+cd app/back
+pip install -r requirements.txt
+uvicorn main:app --reload --port 8000
+```
+Backend API akan berjalan di `http://localhost:8000`. Dokumentasi interaktif (Swagger UI) ada di `http://localhost:8000/docs`.
+
+**2. Menjalankan Frontend**
+Buka file `app/front/index.html` menggunakan web browser Anda, atau gunakan ekstensi seperti Live Server di VSCode.
+Antarmuka web akan terhubung secara otomatis ke backend lokal Anda.
 
 ---
 
@@ -226,6 +266,8 @@ jupyter notebook
 | `numpy` | — | Operasi numerik |
 | `matplotlib` | — | Visualisasi grafik |
 | `seaborn` | — | Styling visualisasi |
+| `fastapi` | — | Framework Backend Web App |
+| `uvicorn` | — | ASGI Server untuk FastAPI |
 
 ---
 
