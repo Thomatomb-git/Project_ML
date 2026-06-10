@@ -402,7 +402,10 @@ async function loadComparison() {
       const ul = $(`#${containerId}`);
       ul.innerHTML = paramOrder
         .map((key) => {
-          const val = params[key];
+          let val = params[key];
+          if (typeof val === 'number' && !Number.isInteger(val)) {
+            val = parseFloat(val.toFixed(6));
+          }
           const display = val != null ? val : '—';
           const dimClass = val == null ? ' dim' : '';
           return `<li><span class="param-key">${key}</span><span class="param-val${dimClass}">${display}</span></li>`;
