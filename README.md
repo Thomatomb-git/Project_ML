@@ -4,7 +4,7 @@
 
 ## 1. Project Summary
 
-Website link: https://projectmlback-production.up.railway.app/
+Website link: https://project-ml-erv3.onrender.com/
 
 This project aims to predict the **daily closing price** of the Jakarta Composite Index (**IHSG / ^JKSE**) using **XGBoost** and **Support Vector Regression (SVR)** algorithms with a regression approach based on technical indicators. The project also features an interactive **Web Application** (FastAPI) to visualize and test predictions in real-time.
 
