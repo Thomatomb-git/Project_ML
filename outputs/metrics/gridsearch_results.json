@@ -1,15 +1,15 @@
 {
     "method": "GridSearchCV",
-    "execution_time_seconds": 112.9927089214325,
+    "execution_time_seconds": 111.65718269348145,
     "best_params": {
         "gamma": 0.01,
         "learning_rate": 0.05,
         "max_depth": 12,
-        "n_estimators": 400,
+        "n_estimators": 300,
         "random_state": 42
     },
-    "best_validation_mse": 127778.93728603853,
-    "test_mse": 853577.9333248138,
-    "test_rmse": 923.8928148464051,
-    "mape": 10.647095791487478
+    "best_validation_mse": 127809.76600579041,
+    "test_mse": 853728.8753909714,
+    "test_rmse": 923.9744993185534,
+    "mape": 10.648078339979001
 }

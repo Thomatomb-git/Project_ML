@@ -1,17 +1,15 @@
 {
     "method": "Optuna",
-    "execution_time_seconds": 29.534369230270386,
+    "execution_time_seconds": 18.63587737083435,
     "best_params": {
-        "n_estimators": 897,
-        "learning_rate": 0.030549249380037127,
-        "max_depth": 3,
-        "gamma": 0.01892844526911721,
-        "subsample": 0.8511623785550595,
-        "colsample_bytree": 0.8167862593111228,
+        "n_estimators": 519,
+        "learning_rate": 0.028529019417475588,
+        "max_depth": 4,
+        "gamma": 0.00029732088643868093,
         "random_state": 42
     },
-    "best_validation_mse": 102917.79934653707,
-    "test_mse": 815560.1024453467,
-    "test_rmse": 903.0836630375652,
-    "mape": 10.126291047024573
+    "best_validation_mse": 109864.84100236141,
+    "test_mse": 834440.7282831566,
+    "test_rmse": 913.4772729976136,
+    "mape": 10.305605303400782
 }

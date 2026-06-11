@@ -328,16 +328,16 @@ async function loadComparison() {
 
     const rows = [
       {
-        label: 'Validation MSE',
-        xG: formatNumber(data.xgboost_gridsearch?.best_validation_mse),
-        xO: formatNumber(data.xgboost_optuna?.best_validation_mse),
-        sG: formatNumber(data.svr_gridsearch?.best_validation_mse),
-        sO: formatNumber(data.svr_optuna?.best_validation_mse),
+        label: 'MAPE (%)',
+        xG: formatNumber(data.xgboost_gridsearch?.mape),
+        xO: formatNumber(data.xgboost_optuna?.mape),
+        sG: formatNumber(data.svr_gridsearch?.mape),
+        sO: formatNumber(data.svr_optuna?.mape),
         win: getWinner(
-            data.xgboost_gridsearch?.best_validation_mse,
-            data.xgboost_optuna?.best_validation_mse,
-            data.svr_gridsearch?.best_validation_mse,
-            data.svr_optuna?.best_validation_mse
+            data.xgboost_gridsearch?.mape,
+            data.xgboost_optuna?.mape,
+            data.svr_gridsearch?.mape,
+            data.svr_optuna?.mape
         ),
       },
       {
@@ -414,7 +414,7 @@ async function loadComparison() {
     }
 
     renderParams('xgbGridParams', data.xgboost_gridsearch?.best_params, ['n_estimators', 'learning_rate', 'max_depth', 'gamma', 'random_state']);
-    renderParams('xgbOptunaParams', data.xgboost_optuna?.best_params, ['n_estimators', 'learning_rate', 'max_depth', 'gamma', 'subsample', 'colsample_bytree', 'random_state']);
+    renderParams('xgbOptunaParams', data.xgboost_optuna?.best_params, ['n_estimators', 'learning_rate', 'max_depth', 'gamma', 'random_state']);
     renderParams('svrGridParams', data.svr_gridsearch?.best_params, ['C', 'gamma', 'epsilon', 'kernel']);
     renderParams('svrOptunaParams', data.svr_optuna?.best_params, ['C', 'gamma', 'epsilon', 'kernel']);
 

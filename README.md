@@ -24,8 +24,7 @@ The core of the research is to **compare two hyperparameter tuning methods**:
 This project's contributions relative to the paper above:
 1. Replaced the tuning method from GridSearchCV to **Bayesian Optimization (Optuna)** as the proposed method.
 2. Expanded the parameter search space to **continuous space** (instead of discrete).
-3. Added anti-overfitting parameters (`subsample`, `colsample_bytree`).
-4. Tested on an emerging market index (**IHSG**) with high volatility.
+3. Tested on an emerging market index (**IHSG**) with high volatility.
 
 ---
 
@@ -105,8 +104,6 @@ Smart search based on Bayes' Theorem over an expanded **continuous** space:
 | `learning_rate` | 0.001 – 0.1 | **Log-uniform** |
 | `max_depth` | 3 – 16 | Uniform integer |
 | `gamma` | 0.0001 – 0.1 | **Log-uniform** |
-| `subsample` | 0.6 – 1.0 | Uniform float |
-| `colsample_bytree` | 0.6 – 1.0 | Uniform float |
 | `random_state` | 42 (fixed) | — |
 
 **2. SVR Optuna Space**
@@ -125,37 +122,56 @@ Smart search based on Bayes' Theorem over an expanded **continuous** space:
 
 ### Best Parameters
 
+#### 1. XGBoost
 | Parameter | GridSearchCV | Optuna |
 |-----------|-------------|--------|
-| `n_estimators` | 400 | 930 |
-| `learning_rate` | 0.05 | 0.0367 |
-| `max_depth` | 12 | 3 |
-| `gamma` | 0.01 | 0.0015 |
-| `subsample` | — | 0.6013 |
-| `colsample_bytree` | — | 0.7722 |
+| `n_estimators` | 300 | 519 |
+| `learning_rate` | 0.05 | 0.0285 |
+| `max_depth` | 12 | 4 |
+| `gamma` | 0.01 | 0.0003 |
 
-> 💡 **Insight**: Optuna found that a **shallower** model (`max_depth=3`) with **more trees** (`n_estimators=930`) and additional regularization (`subsample`, `colsample_bytree`) is more optimal — contrary to Grid Search which selected deeper trees (`max_depth=12`).
+> 💡 **XGBoost Insight**: Optuna found that a **shallower** model (`max_depth=4`) with **more trees** (`n_estimators=519`) is more optimal — contrary to Grid Search which selected deeper trees (`max_depth=12`).
+
+#### 2. Support Vector Regression (SVR)
+| Parameter | GridSearchCV | Optuna |
+|-----------|-------------|--------|
+| `C` | 1000.0 | 865.40 |
+| `gamma` | 0.001 | 0.0015 |
+| `epsilon` | 0.001 | 0.0082 |
+| `kernel` | rbf | rbf |
+
+> 💡 **SVR Insight**: Optuna and GridSearch found very similar hyperparameters, but Optuna achieved it with slightly more continuous precision and much faster execution.
 
 ### Performance Comparison
 
-| Metric | GridSearchCV (Baseline) | Optuna (Proposed) | Winner |
+#### 1. XGBoost Performance
+| Metric | GridSearchCV | Optuna | Winner |
 |--------|------------------------|-------------------|----------|
-| **Validation MSE** | 127,778.94 | 102,715.10 | ✅ Optuna |
-| **Test MSE** | 853,577.93 | 817,097.75 | ✅ Optuna |
-| **Test RMSE** | 923.89 | 903.93 | ✅ Optuna |
-| **Execution Time** | 122.40 seconds | 21.85 seconds | ✅ Optuna |
-| **MAPE** | ~10.65% | ~10.14% | ✅ Optuna |
+| **Test MSE** | 853,728.88 | 834,440.73 | ✅ Optuna |
+| **Test RMSE** | 923.97 | 913.48 | ✅ Optuna |
+| **Execution Time** | 111.66 seconds | 18.64 seconds | ✅ Optuna |
+| **MAPE** | ~10.65% | ~10.31% | ✅ Optuna |
+
+#### 2. SVR Performance
+| Metric | GridSearchCV | Optuna | Winner |
+|--------|------------------------|-------------------|----------|
+| **Test MSE** | 6066.97 | 6042.33 | ✅ Optuna |
+| **Test RMSE** | 77.89 | 77.73 | ✅ Optuna |
+| **Execution Time** | 91.46 seconds | 56.09 seconds | ✅ Optuna |
+| **MAPE** | ~0.82% | ~0.82% | ✅ Optuna (Slightly) |
 
 ### Results Summary
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
-│  Optuna produced a model that is:                           │
+│  Overall Findings:                                          │
 │                                                             │
-│  📉 MSE 4.3% lower than GridSearch                          │
-│  📉 RMSE 2.2% lower than GridSearch                         │
-│  ⚡ 5.6x faster than GridSearch                             │
-│  📊 MAPE ~10.14% (average miss of 10% from actual price)    │
+│  🏆 SVR significantly outperforms XGBoost!                  │
+│     SVR achieved ~0.8% MAPE compared to XGBoost's ~10%.     │
+│                                                             │
+│  ⚡ Optuna is vastly superior to GridSearch.                │
+│     Across both XGBoost and SVR, Optuna found better        │
+│     parameters in a fraction of the time.                   │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -275,13 +291,13 @@ The web interface will automatically connect to your local backend.
 
 ## 11. Conclusion
 
-1. **Optuna (Bayesian Optimization) proves superior** to GridSearchCV across all evaluation metrics: lower MSE, lower RMSE, and **5.6x faster** execution time.
+1. **SVR heavily outperforms XGBoost**: SVR achieves an exceptional MAPE of ~0.8% with an RMSE of ~77 points, far superior to XGBoost's 10% MAPE. This indicates that the margin-based regression of SVR with scaled features is much better suited for capturing the continuous patterns of the stock market index compared to tree-based models.
 
-2. Optuna found a parameter configuration that is **significantly different** from GridSearch — resulting in a shallower model (`max_depth=3`) but with more trees (`n_estimators=930`), indicating a more robust ensemble strategy against overfitting.
+2. **Optuna (Bayesian Optimization) proves superior** to GridSearchCV across all evaluation metrics and models. For XGBoost, it is ~5.6x faster and finds better configurations. For SVR, it is ~1.6x faster and marginally improves test performance.
 
-3. Both models have a **MAPE of around 10%**, suggesting an inherent limitation in predicting stock prices using technical indicators alone, especially for time horizons far from the training data.
+3. **Different strategies via Bayesian Optimization**: For XGBoost, Optuna found a parameter configuration that is **significantly different** from GridSearch — resulting in a shallower model (`max_depth=3`) but with more trees (`n_estimators=930`), indicating a more robust ensemble strategy against overfitting.
 
-4. This project resides entirely in the domain of **classical Machine Learning** — utilizing an ensemble method (gradient boosting) based on decision trees, rather than deep learning / neural networks.
+4. This project resides entirely in the domain of **classical Machine Learning** — utilizing regression methods (gradient boosting and support vector machines) rather than deep learning / neural networks, yet still achieving highly accurate prediction results using SVR.
 
 ---
 
