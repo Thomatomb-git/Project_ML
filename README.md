@@ -50,10 +50,10 @@ Below is the summary of the best hyperparameters found and the resulting evaluat
 
 | Model | Best Parameters | Test RMSE | Test MAE | Hit Rate (%) |
 |-------|-----------------|-----------|----------|--------------|
-| **XGBoost Custom** | `n_estimators`: 147, `learning_rate`: 0.00118, `max_depth`: 13, `gamma`: 0.00048 | 0.0098* | 0.0070* | **49.22%** |
+| **XGBoost Custom** | `n_estimators`: 235, `learning_rate`: 0.0275, `max_depth`: 8, `gamma`: 0.0015 | 0.0098* | 0.0070* | **54.57%** |
 | **SVR Grid** | `C`: 1000.0, `epsilon`: 0.001, `gamma`: 0.001, `kernel`: 'rbf' | 77.89 | 59.15 | 47.75% |
-| **SVR Optuna** | `C`: 187.19, `epsilon`: 0.012, `gamma`: 0.006, `kernel`: 'rbf' | 110.76 | 82.54 | 46.71% |
-| **XGBoost Optuna** | `n_estimators`: 184, `learning_rate`: 0.067, `max_depth`: 4, `gamma`: 0.036 | 916.71 | 781.94 | 46.53% |
+| **SVR Optuna** | `C`: 290.18, `epsilon`: 0.00018, `gamma`: 0.0049, `kernel`: 'rbf' | 110.93 | 82.51 | 44.29% |
+| **XGBoost Optuna** | `n_estimators`: 496, `learning_rate`: 0.0277, `max_depth`: 4, `gamma`: 0.0149 | 917.63 | 782.91 | 46.53% |
 | **XGBoost Grid** | `n_estimators`: 400, `learning_rate`: 0.05, `max_depth`: 12, `gamma`: 0.01 | 923.89 | 804.06 | 46.19% |
 
 *\*Note: The RMSE and MAE for the XGBoost Custom model evaluate the Percentage Return error, not the absolute price error, hence the scale difference.*
