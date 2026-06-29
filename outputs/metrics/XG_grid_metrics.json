@@ -1,0 +1,17 @@
+{
+    "method": "GridSearchCV",
+    "execution_time_seconds": 508.1828718185425,
+    "best_params": {
+        "gamma": 0.01,
+        "learning_rate": 0.05,
+        "max_depth": 12,
+        "n_estimators": 400,
+        "random_state": 42
+    },
+    "best_validation_mse": 127778.93728603853,
+    "test_mse": 853577.9333248138,
+    "test_rmse": 923.8928148464051,
+    "test_mae": 804.0676493010578,
+    "mape": 10.647095791487478,
+    "hit_rate_percentage": 46.19377162629758
+}

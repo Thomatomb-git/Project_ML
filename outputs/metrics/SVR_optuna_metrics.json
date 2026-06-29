@@ -1,0 +1,16 @@
+{
+    "method": "Optuna",
+    "execution_time_seconds": 65.00543332099915,
+    "best_params": {
+        "C": 187.19882454384614,
+        "gamma": 0.006036520154966463,
+        "epsilon": 0.01205603342526838,
+        "kernel": "rbf"
+    },
+    "best_validation_mse": 0.0030307943362208973,
+    "test_mse": 12268.367288295527,
+    "test_rmse": 110.76266197729056,
+    "test_mae": 82.5409553009152,
+    "mape": 1.1028468589333573,
+    "hit_rate_percentage": 46.71280276816609
+}

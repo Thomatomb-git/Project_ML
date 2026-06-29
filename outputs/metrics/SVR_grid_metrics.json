@@ -1,6 +1,6 @@
 {
-    "method": "SVR_GridSearchCV",
-    "execution_time_seconds": 91.45959997177124,
+    "method": "GridSearchCV",
+    "execution_time_seconds": 118.55872702598572,
     "best_params": {
         "C": 1000.0,
         "epsilon": 0.001,
@@ -10,5 +10,7 @@
     "best_validation_mse": 0.0030539828821785873,
     "test_mse": 6066.966079222116,
     "test_rmse": 77.89073166444206,
-    "mape": 0.816109686658546
+    "test_mae": 59.15445869627788,
+    "mape": 0.816109686658546,
+    "hit_rate_percentage": 47.75086505190311
 }

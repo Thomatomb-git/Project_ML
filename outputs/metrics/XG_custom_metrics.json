@@ -1,0 +1,17 @@
+{
+    "method": "Custom using Optuna",
+    "execution_time_seconds": 34.837393283843994,
+    "best_params": {
+        "n_estimators": 147,
+        "learning_rate": 0.0011821347529632638,
+        "max_depth": 13,
+        "gamma": 0.0004893426434513003,
+        "random_state": 42
+    },
+    "best_validation_mse": 5.7464301007218e-05,
+    "test_mse": 9.719128716937289e-05,
+    "test_rmse": 0.009858564153535386,
+    "test_mae": 0.007049891845283081,
+    "mape": 119.39006885540083,
+    "hit_rate_percentage": 49.22279792746114
+}
