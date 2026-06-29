@@ -1,0 +1,410 @@
+:root {
+    --bg-dark: #0a0f1c;
+    --primary: #00f0ff;
+    --secondary: #ff003c;
+    --success: #00ff66;
+    --text-main: #ffffff;
+    --text-muted: #8b9bb4;
+    --glass-bg: rgba(25, 33, 56, 0.4);
+    --glass-border: rgba(255, 255, 255, 0.1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+    scroll-behavior: smooth;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    overflow-x: hidden;
+}
+
+/* Dynamic glowing background blobs */
+.background-glow {
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200vw;
+    height: 200vh;
+    background: radial-gradient(circle at 50% 50%, rgba(0, 240, 255, 0.05), transparent 40%),
+                radial-gradient(circle at 80% 20%, rgba(255, 0, 60, 0.05), transparent 30%);
+    z-index: -1;
+    animation: drift 20s infinite alternate ease-in-out;
+}
+
+@keyframes drift {
+    0% { transform: rotate(0deg) scale(1); }
+    100% { transform: rotate(15deg) scale(1.1); }
+}
+
+/* Glassmorphism Utilities */
+.glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+.glow-card {
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.glow-card:hover {
+    box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+/* Text Gradients & Glows */
+.glow-text {
+    background: linear-gradient(90deg, #fff, var(--primary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+}
+
+.glow-text-green {
+    background: linear-gradient(90deg, #fff, var(--success));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 20px rgba(0, 255, 102, 0.3);
+}
+
+.glow-text-blue {
+    color: var(--primary);
+    text-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+}
+
+.highlight {
+    color: var(--primary);
+}
+
+/* Navbar */
+.navbar {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    padding: 1rem 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 1000;
+    border-radius: 0 0 16px 16px;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: 800;
+}
+.logo span {
+    color: var(--primary);
+}
+
+.nav-links a {
+    color: var(--text-main);
+    text-decoration: none;
+    margin-left: 2rem;
+    font-weight: 600;
+    transition: color 0.2s;
+}
+.nav-links a:hover {
+    color: var(--primary);
+}
+
+/* General Layout */
+.hero {
+    min-height: 100vh;
+    padding: 100px 5%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.section-spacing {
+    min-height: auto;
+    padding: 100px 5%;
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+.section-header h2 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+.section-header p {
+    color: var(--text-muted);
+}
+
+/* Hero 1 Content */
+.hero-content {
+    text-align: center;
+    max-width: 800px;
+}
+.hero-content h1 {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+.subtitle {
+    color: var(--text-muted);
+    font-size: 1.2rem;
+    margin-bottom: 3rem;
+}
+
+.main-prediction-card {
+    padding: 3rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+}
+
+.price-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3rem;
+    width: 100%;
+}
+
+.label {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.current-price-box h2, .predicted-price-box h2 {
+    font-size: 2.5rem;
+    margin-top: 0.5rem;
+}
+
+.sparkline-container {
+    width: 100%;
+    height: 60px;
+    margin-top: 10px;
+}
+
+.arrow {
+    font-size: 2rem;
+    color: var(--primary);
+    opacity: 0.7;
+}
+
+.primary-btn {
+    background: linear-gradient(45deg, var(--primary), #0088ff);
+    border: none;
+    padding: 1rem 2.5rem;
+    color: #000;
+    font-weight: 800;
+    font-size: 1.1rem;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+}
+.primary-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px rgba(0, 240, 255, 0.6);
+}
+
+/* Hero 2: Explorer */
+.explorer-container {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 2rem;
+    width: 100%;
+    max-width: 1200px;
+}
+
+.model-selector {
+    padding: 1.5rem;
+}
+.model-selector h3 {
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.model-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.model-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-muted);
+    padding: 1rem;
+    text-align: left;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.2s;
+}
+
+.model-btn:hover {
+    background: rgba(255,255,255,0.05);
+    color: #fff;
+}
+
+.model-btn.active {
+    background: rgba(0, 240, 255, 0.1);
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    box-shadow: inset 0 0 10px rgba(0, 240, 255, 0.1);
+}
+
+.model-details {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.details-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--glass-border);
+    padding-bottom: 1rem;
+}
+.details-header h3 {
+    font-size: 1.8rem;
+}
+.badge {
+    background: rgba(0, 240, 255, 0.15);
+    color: var(--primary);
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.param-box, .metric-box {
+    background: rgba(0,0,0,0.2);
+    padding: 1.5rem;
+    border-radius: 12px;
+}
+.param-box h4, .metric-box h4 {
+    margin-bottom: 1rem;
+    color: var(--primary);
+}
+
+pre {
+    font-family: monospace;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    white-space: pre-wrap;
+}
+
+.metric-box ul {
+    list-style: none;
+}
+.metric-box li {
+    margin-bottom: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+    color: var(--text-muted);
+}
+.metric-box li span {
+    color: #fff;
+    font-weight: 600;
+}
+
+.prediction-box {
+    background: rgba(0, 240, 255, 0.05);
+    border: 1px solid rgba(0, 240, 255, 0.2);
+    padding: 2rem;
+    border-radius: 12px;
+    text-align: center;
+}
+.prediction-box h4 {
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+.prediction-box h2 {
+    font-size: 2.5rem;
+}
+
+/* Hero 3: Comparison */
+.comparison-container {
+    width: 100%;
+    max-width: 1000px;
+    padding: 2rem;
+}
+
+.metric-controls {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.glass-select {
+    background: rgba(0, 0, 0, 0.4);
+    color: var(--text-main);
+    border: 1px solid var(--primary);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    outline: none;
+    font-size: 1rem;
+    cursor: pointer;
+    backdrop-filter: blur(5px);
+}
+.glass-select option {
+    background: var(--bg-dark);
+}
+
+.chart-wrapper {
+    position: relative;
+    height: 400px;
+    width: 100%;
+}
+
+.warning-text {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: rgba(255, 204, 0, 0.1);
+    border-left: 4px solid #ffcc00;
+    color: #ffd633;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+/* Hero 4: Backtest */
+.image-wrapper {
+    width: 100%;
+    margin-top: 1rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    padding: 1rem;
+}
+
+.plot-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    transition: transform 0.3s ease;
+}
+
+.plot-image:hover {
+    transform: scale(1.02);
+}

@@ -25,6 +25,7 @@ This project's contributions relative to the paper above:
 1. Replaced the tuning method from GridSearchCV to **Bayesian Optimization (Optuna)** as the proposed method.
 2. Expanded the parameter search space to **continuous space** (instead of discrete).
 3. Tested on an emerging market index (**IHSG**) with high volatility.
+4. Introduced a **Pipeline 2 (Custom XGBoost)** which predicts daily returns instead of direct prices, improving the directional accuracy (Hit Rate).
 
 ---
 
@@ -35,7 +36,8 @@ This project's contributions relative to the paper above:
 | **Subject** | IHSG (Jakarta Composite Index) — Ticker: `^JKSE` |
 | **Source** | Yahoo Finance API (`yfinance`) |
 | **Period** | January 1, 2010 – December 31, 2025 (~15 years) |
-| **Target** | Next day's closing price (T+1) — `Target_Close = Close.shift(-1)` |
+| **Target (Pipeline 1)** | Next day's closing price (T+1) — `Target_Close = Close.shift(-1)` |
+| **Target (Pipeline 2)** | Next day's percentage return — `Target_Return = Returns.shift(-1)` |
 
 ### Data Split (Sequential / Chronological)
 
@@ -68,7 +70,7 @@ Library used: [`ta`](https://github.com/bukosabino/ta) (Technical Analysis Libra
 
 ## 4. Hyperparameter Tuning
 
-Experiments were conducted by tuning parameters for two algorithms (XGBoost and SVR) using two search approaches:
+Experiments were conducted by tuning parameters for two algorithms (XGBoost and SVR) using two search approaches in **Pipeline 1**, and an additional custom approach in **Pipeline 2**.
 
 ### A. GridSearchCV (Baseline — Following Reference Paper)
 
@@ -91,8 +93,6 @@ Exhaustive search on the following discrete grid (based on Table 1 of the paper 
 | `epsilon` | [0.0001, 0.001, 0.01, 0.1] |
 | `kernel` | ['rbf'] |
 
-**Total combinations: 256** — each combination was trained & evaluated on the validation set.
-
 ### B. Optuna / Bayesian Optimization (Proposed Method)
 
 Smart search based on Bayes' Theorem over an expanded **continuous** space:
@@ -114,51 +114,53 @@ Smart search based on Bayes' Theorem over an expanded **continuous** space:
 | `epsilon` | 0.0001 – 0.1 | **Log-uniform** |
 | `kernel` | 'rbf' (fixed) | — |
 
-**Total iterations: 50 trials** — each iteration learns from the results of the previous iterations.
-
 ---
 
 ## 5. Experiment Results
 
 ### Best Parameters
 
-#### 1. XGBoost
-| Parameter | GridSearchCV | Optuna |
-|-----------|-------------|--------|
-| `n_estimators` | 300 | 519 |
-| `learning_rate` | 0.05 | 0.0285 |
-| `max_depth` | 12 | 4 |
-| `gamma` | 0.01 | 0.0003 |
+#### 1. XGBoost (Pipeline 1) & Custom (Pipeline 2)
+| Parameter | GridSearchCV | Optuna | Custom (Optuna) |
+|-----------|-------------|--------|-----------------|
+| `n_estimators` | 400 | 184 | 147 |
+| `learning_rate` | 0.05 | 0.0677 | 0.0012 |
+| `max_depth` | 12 | 4 | 13 |
+| `gamma` | 0.01 | 0.0365 | 0.0005 |
 
-> 💡 **XGBoost Insight**: Optuna found that a **shallower** model (`max_depth=4`) with **more trees** (`n_estimators=519`) is more optimal — contrary to Grid Search which selected deeper trees (`max_depth=12`).
+> 💡 **XGBoost Insight**: Optuna found that a **shallower** model (`max_depth=4`) with **fewer trees** (`n_estimators=184`) is optimal for Pipeline 1. However, the custom approach for return prediction leaned towards deeper trees (`max_depth=13`).
 
 #### 2. Support Vector Regression (SVR)
 | Parameter | GridSearchCV | Optuna |
 |-----------|-------------|--------|
-| `C` | 1000.0 | 865.40 |
-| `gamma` | 0.001 | 0.0015 |
-| `epsilon` | 0.001 | 0.0082 |
+| `C` | 1000.0 | 187.20 |
+| `gamma` | 0.001 | 0.0060 |
+| `epsilon` | 0.001 | 0.0121 |
 | `kernel` | rbf | rbf |
-
-> 💡 **SVR Insight**: Optuna and GridSearch found very similar hyperparameters, but Optuna achieved it with slightly more continuous precision and much faster execution.
 
 ### Performance Comparison
 
 #### 1. XGBoost Performance
-| Metric | GridSearchCV | Optuna | Winner |
-|--------|------------------------|-------------------|----------|
-| **Test MSE** | 853,728.88 | 834,440.73 | ✅ Optuna |
-| **Test RMSE** | 923.97 | 913.48 | ✅ Optuna |
-| **Execution Time** | 111.66 seconds | 18.64 seconds | ✅ Optuna |
-| **MAPE** | ~10.65% | ~10.31% | ✅ Optuna |
+| Metric | GridSearchCV | Optuna | Custom (Return-based) | Winner |
+|--------|--------------|--------|-----------------------|----------|
+| **Test MSE** | 853,577.93 | 840,369.95 | 9.7e-05* | ✅ Optuna / Custom* |
+| **Test RMSE** | 923.89 | 916.72 | 0.0099* | ✅ Optuna / Custom* |
+| **Test MAE** | 804.07 | 781.95 | 0.0070* | ✅ Optuna / Custom* |
+| **MAPE** | 10.65% | 10.32% | 119.39%* | ✅ Optuna |
+| **Hit Rate** | 46.19% | 46.54% | **49.22%** | ✅ Custom |
+| **Execution Time**| 508.18 s | 39.57 s | 34.84 s | ✅ Custom / Optuna |
+
+*\* Custom predicts returns, thus absolute scale metrics (MSE/RMSE/MAE) are fundamentally incomparable.*
 
 #### 2. SVR Performance
 | Metric | GridSearchCV | Optuna | Winner |
-|--------|------------------------|-------------------|----------|
-| **Test MSE** | 6066.97 | 6042.33 | ✅ Optuna |
-| **Test RMSE** | 77.89 | 77.73 | ✅ Optuna |
-| **Execution Time** | 91.46 seconds | 56.09 seconds | ✅ Optuna |
-| **MAPE** | ~0.82% | ~0.82% | ✅ Optuna (Slightly) |
+|--------|--------------|--------|----------|
+| **Test MSE** | 6,066.97 | 12,268.37 | ✅ GridSearchCV |
+| **Test RMSE** | 77.89 | 110.76 | ✅ GridSearchCV |
+| **Test MAE** | 59.15 | 82.54 | ✅ GridSearchCV |
+| **MAPE** | 0.82% | 1.10% | ✅ GridSearchCV |
+| **Hit Rate** | **47.75%** | 46.71% | ✅ GridSearchCV |
+| **Execution Time**| 118.56 s | 65.01 s | ✅ Optuna |
 
 ### Results Summary
 
@@ -166,12 +168,19 @@ Smart search based on Bayes' Theorem over an expanded **continuous** space:
 ┌─────────────────────────────────────────────────────────────┐
 │  Overall Findings:                                          │
 │                                                             │
-│  🏆 SVR significantly outperforms XGBoost!                  │
-│     SVR achieved ~0.8% MAPE compared to XGBoost's ~10%.     │
+│  🏆 SVR significantly outperforms XGBoost (Pipeline 1)!     │
+│     SVR achieved ~0.82% MAPE compared to XGBoost's ~10%.    │
+│     SVR Grid Search found the lowest errors overall.        │
 │                                                             │
-│  ⚡ Optuna is vastly superior to GridSearch.                │
-│     Across both XGBoost and SVR, Optuna found better        │
-│     parameters in a fraction of the time.                   │
+│  ⚡ Optuna is vastly faster than GridSearch.                │
+│     Across both XGBoost and SVR, Optuna found parameters    │
+│     in a fraction of the time, although GridSearch edged    │
+│     out slightly better accuracy in SVR.                    │
+│                                                             │
+│  🎯 Pipeline 2 (XGBoost Custom) excels at Directionality!   │
+│     While Pipeline 1 minimizes price error, Pipeline 2      │
+│     predicts daily returns, achieving the highest Hit Rate  │
+│     (49.22%), making it highly valuable for trading signals.│
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -184,7 +193,7 @@ Comparison plot of actual IHSG prices vs model predictions during the test perio
 📁 `outputs/plots/actual_vs_predicted.png`
 
 ### Feature Importance
-Bar chart showing the relative importance score of each technical indicator after Bayesian optimization.  
+Bar chart showing the relative importance score of each technical indicator after optimization.  
 📁 `outputs/plots/feature_importance.png`
 
 ---
@@ -205,10 +214,13 @@ Project_ML/
 │
 ├── notebooks/                 # Data Preparation & Model Experiments
 │   ├── Data_Preparation.ipynb     # Download data & feature engineering
-│   ├── XGBoost_GridSearchCV.ipynb # XGBoost using GridSearch
-│   ├── XGBoost_Optuna.ipynb       # XGBoost using Optuna
-│   ├── SVR_GridSearchCV.ipynb     # SVR using GridSearch
-│   └── SVR_Optuna.ipynb           # SVR using Optuna
+│   ├── pipeline_1/
+│   │   ├── XGBoost_GridSearchCV.ipynb # XGBoost predicting Close
+│   │   ├── XGBoost_Optuna.ipynb       # XGBoost predicting Close
+│   │   ├── SVR_GridSearchCV.ipynb     # SVR predicting Close
+│   │   └── SVR_Optuna.ipynb           # SVR predicting Close
+│   └── pipeline_2/
+│       └── XGBoost_Custom.ipynb       # XGBoost predicting Returns
 │
 ├── data/
 │   ├── raw/                   # Raw data from Yahoo Finance
@@ -236,7 +248,7 @@ jupyter notebook
 
 # 2. Open and run `notebooks/Data_Preparation.ipynb` to download raw data and process features (technical indicators).
 
-# 3. Open and sequentially run the cells in the desired model notebook (e.g., XGBoost_Optuna.ipynb). Evaluation results and plots will be automatically saved in the `outputs/` folder.
+# 3. Open and sequentially run the cells in the desired model notebook (e.g., notebooks/pipeline_1/XGBoost_Optuna.ipynb). Evaluation results and plots will be automatically saved in the `outputs/` folder.
 ```
 
 ### Running the Web Application
@@ -262,7 +274,9 @@ The web interface will automatically connect to your local backend.
 |--------|-------|----------|
 | **MSE** | $\frac{1}{n}\sum(y_i - \hat{y}_i)^2$ | Measures mean squared error — sensitive to outliers |
 | **RMSE** | $\sqrt{MSE}$ | Same as MSE but in original units (index points) |
-| **MAPE** | $\frac{1}{n}\sum\left\|\frac{y_i - \hat{y}_i}{y_i}\right\| \times 100\%$ | Mean absolute percentage error — intuitive and easy to interpret |
+| **MAE** | $\frac{1}{n}\sum\|y_i - \hat{y}_i\|$ | Mean absolute error |
+| **MAPE** | $\frac{100\%}{n}\sum\left\|\frac{y_i - \hat{y}_i}{y_i}\right\|$ | Mean absolute percentage error — intuitive and easy to interpret |
+| **Hit Rate**| $\frac{100\%}{N} \sum I \left( \text{sgn}(\text{Pred}) = \text{sgn}(\text{Actual}) \right)$| Measures how accurately the model predicts the *direction* (up/down) of the market |
 
 ---
 
@@ -286,13 +300,13 @@ The web interface will automatically connect to your local backend.
 
 ## 11. Conclusion
 
-1. **SVR heavily outperforms XGBoost**: SVR achieves an exceptional MAPE of ~0.82% with an RMSE of ~78 points, far superior to XGBoost's 10% MAPE. This indicates that the margin-based regression of SVR with scaled features is much better suited for capturing the continuous patterns of the stock market index compared to tree-based models.
+1. **SVR heavily outperforms XGBoost (Pipeline 1)**: SVR achieves an exceptional MAPE of ~0.82% with an RMSE of ~78 points, far superior to XGBoost's 10% MAPE. This indicates that the margin-based regression of SVR with scaled features is much better suited for capturing the continuous patterns of the stock market index compared to tree-based models when directly predicting stock prices.
 
-2. **Optuna (Bayesian Optimization) proves superior** to GridSearchCV across all evaluation metrics and models. For XGBoost, it is ~6x faster and finds better configurations. For SVR, it is ~1.6x faster and marginally improves test performance.
+2. **Optuna (Bayesian Optimization) speed advantage**: Optuna is significantly faster than GridSearchCV. For XGBoost, it ran in ~40 seconds compared to ~508 seconds for Grid Search.
 
-3. **Different strategies via Bayesian Optimization**: For XGBoost, Optuna found a parameter configuration that is **significantly different** from GridSearch — resulting in a shallower model (`max_depth=4`) but with more trees (`n_estimators=519`), indicating a more robust ensemble strategy against overfitting.
+3. **Pipeline 2 (Custom Return Prediction) finds Edge**: While Pipeline 1 has low error margins for SVR, Pipeline 2 (XGBoost predicting returns rather than direct closing price) yields the highest **Hit Rate (49.22%)**, demonstrating its superior capability in forecasting the direction of daily price movements.
 
-4. This project resides entirely in the domain of **classical Machine Learning** — utilizing regression methods (gradient boosting and support vector machines) rather than deep learning / neural networks, yet still achieving highly accurate prediction results using SVR.
+4. **Different strategies via Bayesian Optimization**: For XGBoost, Optuna found a parameter configuration that is **significantly different** from GridSearch — resulting in a shallower model (`max_depth=4`) but with fewer trees (`n_estimators=184`), indicating a very different optimum in the continuous space.
 
 ---
 

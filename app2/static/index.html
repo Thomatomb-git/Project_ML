@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IHSG Predictor Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="background-glow"></div>
+    
+    <nav class="navbar glass">
+        <div class="logo">IHSG <span>AI Predictor</span></div>
+        <div class="nav-links">
+            <a href="#hero1">Dashboard</a>
+            <a href="#hero2">Model Explorer</a>
+            <a href="#hero3">Comparison</a>
+            <a href="#hero4">Backtest</a>
+        </div>
+    </nav>
+
+    <!-- Hero 1: Main Dashboard (Custom XGBoost) -->
+    <section id="hero1" class="hero">
+        <div class="hero-content">
+            <h1 class="glow-text">Predict the Future of IHSG</h1>
+            <p class="subtitle">Powered by Custom XGBoost & Advanced Technical Indicators</p>
+            
+            <div class="main-prediction-card glass glow-card">
+                <div class="price-container">
+                    <div class="current-price-box">
+                        <span class="label">Today's Close (^JKSE)</span>
+                        <h2 id="currentPrice">Loading...</h2>
+                        <div class="sparkline-container">
+                            <canvas id="sparklineChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="predicted-price-box">
+                        <span class="label highlight">Tomorrow's Prediction (Custom XGB)</span>
+                        <h2 id="predictedPriceXGBCustom" class="glow-text-green">Loading...</h2>
+                    </div>
+                </div>
+                <button id="predictBtn" class="primary-btn">Run Live Prediction</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Hero 2: Model Explorer -->
+    <section id="hero2" class="hero section-spacing">
+        <div class="section-header">
+            <h2>Explore Models</h2>
+            <p>Compare how different algorithms and hyperparameter tuning perform</p>
+        </div>
+
+        <div class="explorer-container">
+            <div class="model-selector glass">
+                <h3>Select Model</h3>
+                <div class="model-options" id="modelSelector">
+                    <button class="model-btn active" data-model="XG_custom">XGBoost Custom</button>
+                    <button class="model-btn" data-model="XG_grid">XGBoost GridSearchCV</button>
+                    <button class="model-btn" data-model="XG_optuna">XGBoost Optuna</button>
+                    <button class="model-btn" data-model="SVR_grid">SVR GridSearchCV</button>
+                    <button class="model-btn" data-model="SVR_optuna">SVR Optuna</button>
+                </div>
+            </div>
+
+            <div class="model-details glass">
+                <div class="details-header">
+                    <h3 id="detailModelName">XGBoost Custom</h3>
+                    <div class="badge" id="detailModelMethod">Custom using Optuna</div>
+                </div>
+                
+                <div class="details-grid">
+                    <div class="param-box">
+                        <h4>Best Parameters</h4>
+                        <pre id="detailParams">Loading...</pre>
+                    </div>
+                    <div class="metric-box">
+                        <h4>Performance Metrics (Test Data)</h4>
+                        <ul id="detailMetrics">
+                            <li>Loading...</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Hero 3: Model Comparison -->
+    <section id="hero3" class="hero section-spacing">
+        <div class="section-header">
+            <h2>Performance Comparison</h2>
+            <p>Select a metric to compare across all models</p>
+        </div>
+        
+        <div class="comparison-container glass">
+            <div class="metric-controls">
+                <label for="metricSelect">Compare Metric: </label>
+                <select id="metricSelect" class="glass-select">
+                    <option value="hit_rate_percentage" selected>Hit Rate (%)</option>
+                    <option value="test_rmse">RMSE</option>
+                    <option value="test_mae">MAE</option>
+                    <option value="mape">MAPE</option>
+                    <option value="test_mse">MSE</option>
+                </select>
+            </div>
+            <div class="chart-wrapper">
+                <canvas id="comparisonChart"></canvas>
+            </div>
+            <p id="metricWarning" class="warning-text" style="display: none;">
+                ⚠️ <strong>Note:</strong> The XGBoost Custom model predicts percentage returns, not direct prices. Therefore, error metrics (RMSE, MAE, MSE, MAPE) for the Custom model are irrelevant when compared to the other models.
+            </p>
+        </div>
+    </section>
+
+    <!-- Hero 4: Backtesting Results -->
+    <section id="hero4" class="hero section-spacing">
+        <div class="section-header">
+            <h2>Actual vs Predicted Trend</h2>
+            <p>Historical backtesting performance on the test dataset</p>
+        </div>
+        
+        <div class="comparison-container glass">
+            <div class="metric-controls">
+                <label for="backtestModelSelect">Select Model: </label>
+                <select id="backtestModelSelect" class="glass-select">
+                    <option value="XG_custom" selected>XGBoost Custom</option>
+                    <option value="XG_grid">XGBoost GridSearchCV</option>
+                    <option value="XG_optuna">XGBoost Optuna</option>
+                    <option value="SVR_grid">SVR GridSearchCV</option>
+                    <option value="SVR_optuna">SVR Optuna</option>
+                </select>
+            </div>
+            
+            <div class="image-wrapper" style="text-align: center;">
+                <img id="backtestImage" src="/plots/price_movement_XG_custom.png" alt="Actual vs Predicted Chart" class="plot-image">
+            </div>
+        </div>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
