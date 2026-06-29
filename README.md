@@ -4,7 +4,7 @@
 
 ## 1. Project Summary
 
-Website link: https://projectmlback-production.up.railway.app/
+Website link: https://project-ml-erv3.onrender.com/
 
 This project aims to predict the **daily closing price** of the Jakarta Composite Index (**IHSG / ^JKSE**) using **XGBoost** and **Support Vector Regression (SVR)** algorithms with a regression approach based on technical indicators. The project also features an interactive **Web Application** (FastAPI) to visualize and test predictions in real-time.
 
@@ -187,11 +187,6 @@ Comparison plot of actual IHSG prices vs model predictions during the test perio
 Bar chart showing the relative importance score of each technical indicator after Bayesian optimization.  
 📁 `outputs/plots/feature_importance.png`
 
-### Percentage Error Analysis
-Daily percentage error chart and error distribution histogram for each model.  
-📁 `outputs/plots/percentage_error_xgboost__optuna.png`  
-📁 `outputs/plots/percentage_error_xgboost__gridsearch.png`
-
 ---
 
 ## 7. Project Structure
@@ -291,11 +286,11 @@ The web interface will automatically connect to your local backend.
 
 ## 11. Conclusion
 
-1. **SVR heavily outperforms XGBoost**: SVR achieves an exceptional MAPE of ~0.8% with an RMSE of ~77 points, far superior to XGBoost's 10% MAPE. This indicates that the margin-based regression of SVR with scaled features is much better suited for capturing the continuous patterns of the stock market index compared to tree-based models.
+1. **SVR heavily outperforms XGBoost**: SVR achieves an exceptional MAPE of ~0.82% with an RMSE of ~78 points, far superior to XGBoost's 10% MAPE. This indicates that the margin-based regression of SVR with scaled features is much better suited for capturing the continuous patterns of the stock market index compared to tree-based models.
 
-2. **Optuna (Bayesian Optimization) proves superior** to GridSearchCV across all evaluation metrics and models. For XGBoost, it is ~5.6x faster and finds better configurations. For SVR, it is ~1.6x faster and marginally improves test performance.
+2. **Optuna (Bayesian Optimization) proves superior** to GridSearchCV across all evaluation metrics and models. For XGBoost, it is ~6x faster and finds better configurations. For SVR, it is ~1.6x faster and marginally improves test performance.
 
-3. **Different strategies via Bayesian Optimization**: For XGBoost, Optuna found a parameter configuration that is **significantly different** from GridSearch — resulting in a shallower model (`max_depth=3`) but with more trees (`n_estimators=930`), indicating a more robust ensemble strategy against overfitting.
+3. **Different strategies via Bayesian Optimization**: For XGBoost, Optuna found a parameter configuration that is **significantly different** from GridSearch — resulting in a shallower model (`max_depth=4`) but with more trees (`n_estimators=519`), indicating a more robust ensemble strategy against overfitting.
 
 4. This project resides entirely in the domain of **classical Machine Learning** — utilizing regression methods (gradient boosting and support vector machines) rather than deep learning / neural networks, yet still achieving highly accurate prediction results using SVR.
 
