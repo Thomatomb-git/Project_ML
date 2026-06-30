@@ -24,6 +24,18 @@ METRICS_DIR = os.path.join(PROJECT_ROOT, 'outputs', 'metrics')
 STATIC_DIR = os.path.join(BASE_DIR, '..', 'static')
 
 import xgboost
+import zipfile
+
+# Extract models from zip to bypass Git corruption
+MODELS_ZIP = os.path.join(PROJECT_ROOT, 'outputs', 'models.zip')
+if os.path.exists(MODELS_ZIP):
+    try:
+        print(f"Extracting pristine models from {MODELS_ZIP}...")
+        with zipfile.ZipFile(MODELS_ZIP, 'r') as zip_ref:
+            zip_ref.extractall(os.path.join(PROJECT_ROOT, 'outputs'))
+        print("Models extracted successfully.")
+    except Exception as e:
+        print(f"Failed to extract models.zip: {e}")
 
 # Load models and scalers
 models = {}
