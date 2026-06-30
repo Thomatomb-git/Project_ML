@@ -1,6 +1,6 @@
 {
     "method": "GridSearchCV",
-    "execution_time_seconds": 111.51745891571045,
+    "execution_time_seconds": 112.843190908432,
     "best_params": {
         "C": 1000.0,
         "epsilon": 0.001,

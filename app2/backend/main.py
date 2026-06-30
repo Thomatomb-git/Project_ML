@@ -24,34 +24,31 @@ METRICS_DIR = os.path.join(PROJECT_ROOT, 'outputs', 'metrics')
 STATIC_DIR = os.path.join(BASE_DIR, '..', 'static')
 
 import xgboost
-import base64
+import joblib
 
 # Load models and scalers
 models = {}
 scalerX = None
 scalery = None
 
-def load_pickle_b64(path_base):
-    # path_base is without .b64, we will append it
-    b64_path = path_base + '.b64'
-    try:
-        with open(b64_path, 'r') as f:
-            b64_content = f.read()
-            raw_bytes = base64.b64decode(b64_content)
-            return pickle.loads(raw_bytes)
-    except Exception as e:
-        print(f"Error loading base64 {b64_path}: {e}")
-        return None
-
 try:
-    models['SVR_grid'] = load_pickle_b64(os.path.join(MODELS_DIR, 'SVR_grid_model.pkl'))
-    models['SVR_optuna'] = load_pickle_b64(os.path.join(MODELS_DIR, 'SVR_optuna_model.pkl'))
-    models['XG_grid'] = load_pickle_b64(os.path.join(MODELS_DIR, 'XG_grid_model.pkl'))
-    models['XG_optuna'] = load_pickle_b64(os.path.join(MODELS_DIR, 'XG_optuna_model.pkl'))
-    models['XG_custom'] = load_pickle_b64(os.path.join(MODELS_DIR, 'XG_custom_model.pkl'))
+    # --- Load XGBoost Models (menggunakan XGBoost Booster) ---
+    models['XG_grid'] = xgboost.XGBRegressor()
+    models['XG_grid'].load_model(os.path.join(MODELS_DIR, 'XG_grid_model.json'))
     
-    scalerX = load_pickle_b64(os.path.join(MODELS_DIR, 'scalerX.pkl'))
-    scalery = load_pickle_b64(os.path.join(MODELS_DIR, 'scalery.pkl'))
+    models['XG_optuna'] = xgboost.XGBRegressor()
+    models['XG_optuna'].load_model(os.path.join(MODELS_DIR, 'XG_optuna_model.json'))
+    
+    models['XG_custom'] = xgboost.XGBRegressor()
+    models['XG_custom'].load_model(os.path.join(MODELS_DIR, 'XG_custom_model.json'))
+    
+    # --- Load SVR Models & Scalers (menggunakan Joblib) ---
+    models['SVR_grid'] = joblib.load(os.path.join(MODELS_DIR, 'SVR_grid_model.joblib'))
+    models['SVR_optuna'] = joblib.load(os.path.join(MODELS_DIR, 'SVR_optuna_model.joblib'))
+    
+    scalerX = joblib.load(os.path.join(MODELS_DIR, 'scalerX.joblib'))
+    scalery = joblib.load(os.path.join(MODELS_DIR, 'scalery.joblib'))
+    
 except Exception as e:
     print(f"Global error loading models: {e}")
 
