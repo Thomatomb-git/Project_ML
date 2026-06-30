@@ -24,40 +24,36 @@ METRICS_DIR = os.path.join(PROJECT_ROOT, 'outputs', 'metrics')
 STATIC_DIR = os.path.join(BASE_DIR, '..', 'static')
 
 import xgboost
-import zipfile
-
-# Extract models from zip to bypass Git corruption
-MODELS_ZIP = os.path.join(PROJECT_ROOT, 'outputs', 'models.zip')
-if os.path.exists(MODELS_ZIP):
-    try:
-        print(f"Extracting pristine models from {MODELS_ZIP}...")
-        with zipfile.ZipFile(MODELS_ZIP, 'r') as zip_ref:
-            zip_ref.extractall(os.path.join(PROJECT_ROOT, 'outputs'))
-        print("Models extracted successfully.")
-    except Exception as e:
-        print(f"Failed to extract models.zip: {e}")
+import base64
 
 # Load models and scalers
 models = {}
 scalerX = None
 scalery = None
 
-def load_pickle(path):
+def load_pickle_b64(path_base):
+    # path_base is without .b64, we will append it
+    b64_path = path_base + '.b64'
     try:
-        with open(path, 'rb') as f:
-            return pickle.load(f)
+        with open(b64_path, 'r') as f:
+            b64_content = f.read()
+            raw_bytes = base64.b64decode(b64_content)
+            return pickle.loads(raw_bytes)
     except Exception as e:
-        print(f"Error loading {path}: {e}")
+        print(f"Error loading base64 {b64_path}: {e}")
         return None
 
-models['SVR_grid'] = load_pickle(os.path.join(MODELS_DIR, 'SVR_grid_model.pkl'))
-models['SVR_optuna'] = load_pickle(os.path.join(MODELS_DIR, 'SVR_optuna_model.pkl'))
-models['XG_grid'] = load_pickle(os.path.join(MODELS_DIR, 'XG_grid_model.pkl'))
-models['XG_optuna'] = load_pickle(os.path.join(MODELS_DIR, 'XG_optuna_model.pkl'))
-models['XG_custom'] = load_pickle(os.path.join(MODELS_DIR, 'XG_custom_model.pkl'))
+try:
+    models['SVR_grid'] = load_pickle_b64(os.path.join(MODELS_DIR, 'SVR_grid_model.pkl'))
+    models['SVR_optuna'] = load_pickle_b64(os.path.join(MODELS_DIR, 'SVR_optuna_model.pkl'))
+    models['XG_grid'] = load_pickle_b64(os.path.join(MODELS_DIR, 'XG_grid_model.pkl'))
+    models['XG_optuna'] = load_pickle_b64(os.path.join(MODELS_DIR, 'XG_optuna_model.pkl'))
+    models['XG_custom'] = load_pickle_b64(os.path.join(MODELS_DIR, 'XG_custom_model.pkl'))
     
-scalerX = load_pickle(os.path.join(MODELS_DIR, 'scalerX.pkl'))
-scalery = load_pickle(os.path.join(MODELS_DIR, 'scalery.pkl'))
+    scalerX = load_pickle_b64(os.path.join(MODELS_DIR, 'scalerX.pkl'))
+    scalery = load_pickle_b64(os.path.join(MODELS_DIR, 'scalery.pkl'))
+except Exception as e:
+    print(f"Global error loading models: {e}")
 
 @app.get("/api/metrics")
 def get_metrics():
