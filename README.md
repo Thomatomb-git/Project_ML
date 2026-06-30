@@ -48,15 +48,25 @@ This pipeline is heavily optimized for momentum and volatility tracking. Instead
 
 Below is the summary of the best hyperparameters found and the resulting evaluation metrics on the test dataset.
 
-| Model | Best Parameters | Test RMSE | Test MAE | Hit Rate (%) |
-|-------|-----------------|-----------|----------|--------------|
-| **XGBoost Custom** | `n_estimators`: 235, `learning_rate`: 0.0275, `max_depth`: 8, `gamma`: 0.0015 | 0.0098* | 0.0070* | **54.57%** |
-| **SVR Grid** | `C`: 1000.0, `epsilon`: 0.001, `gamma`: 0.001, `kernel`: 'rbf' | 77.89 | 59.15 | 47.75% |
-| **SVR Optuna** | `C`: 290.18, `epsilon`: 0.00018, `gamma`: 0.0049, `kernel`: 'rbf' | 110.93 | 82.51 | 44.29% |
-| **XGBoost Optuna** | `n_estimators`: 496, `learning_rate`: 0.0277, `max_depth`: 4, `gamma`: 0.0149 | 917.63 | 782.91 | 46.53% |
-| **XGBoost Grid** | `n_estimators`: 400, `learning_rate`: 0.05, `max_depth`: 12, `gamma`: 0.01 | 923.89 | 804.06 | 46.19% |
+| Model | Best Parameters |
+|-------|-----------------|
+| **XGBoost Custom** | `n_estimators`: 135, `learning_rate`: 0.0533, `max_depth`: 9, `gamma`: 0.0016 |
+| **XGBoost Optuna** | `n_estimators`: 463, `learning_rate`: 0.0236, `max_depth`: 4, `gamma`: 0.0072 |
+| **XGBoost Grid** | `n_estimators`: 400, `learning_rate`: 0.05, `max_depth`: 12, `gamma`: 0.01 |
+| **SVR Grid** | `C`: 1000.0, `epsilon`: 0.001, `gamma`: 0.001, `kernel`: 'rbf' |
+| **SVR Optuna** | `C`: 81.94, `epsilon`: 0.0092, `gamma`: 0.0052, `kernel`: 'rbf' |
 
-*\*Note: The RMSE and MAE for the XGBoost Custom model evaluate the Percentage Return error, not the absolute price error, hence the scale difference.*
+<br>
+
+| Model | MSE (Test) | RMSE (Test) | MAE (Test) | MAPE | Hit Rate (%) |
+| :---  | :--- | :--- | :--- | :--- | :--- |
+| **XGBoost Custom** | 0,0000979 | 0,0099 | 0,0070 | 112,0417 | **54,58%** |
+| **XGBoost Optuna** | 837.352,7826 | 915,0698 | 781,9048 | 10,3236 | 46,89% |
+| **XGBoost Grid** | 853.577,9333 | 923,8928 | 804,0676 | 10,6471 | 46,19% |
+| **SVR Grid** | 6.066,9661 | 77,8907 | 59,1545 | 0,8161 | 47,75% |
+| **SVR Optuna** | 9.495,7411 | 97,4461 | 74,4033 | 1,0030 | 46,54% |
+
+*\*Note: The MSE, MAPE, RMSE and MAE for the XGBoost Custom model evaluate the Percentage Return error, not the absolute price error, hence the scale difference.*
 
 ---
 
